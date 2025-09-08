@@ -15,6 +15,7 @@
         "dropdowns": [
           {
             "dropdown": "React",
+            "icon": "code",
             "groups": [
               {
                 "group": "welcome",
@@ -57,6 +58,7 @@
           },
           {
             "dropdown": "Expo / React Native",
+            "icon": "code",
             "groups": [
               {
                 "group": "1. create Basic account",
