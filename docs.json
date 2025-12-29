@@ -304,5 +304,12 @@
       "twitter": "https://twitter.com/basic_db",
       "github": "https://github.com/basicdb"
     }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude"    ]
   }
 }
