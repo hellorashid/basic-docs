@@ -1,0 +1,230 @@
+---
+title: "Quickstart: Next.js"
+description: "Using the @basictech/nextjs library with your Next.js project"
+---
+
+In this guide, you will:
+1. Install the Basic Next.js SDK into an existing Next.js project
+2. Connect to a Basic project and customize the schema
+3. Add sign in and sign out functionality
+
+<Info>This library is for Next.js applications using the App Router. For plain React apps, see the [@basictech/react documentation](/basic-react/basic-react-sdk).</Info>
+
+# Installation
+
+<Steps>
+  <Step title="Install the @basictech/nextjs library">
+    Navigate to your project and install the Basic Next.js SDK:
+
+    ```bash Terminal
+    cd your-nextjs-project
+    npm install @basictech/nextjs
+    ```
+  </Step>
+</Steps>
+
+# Set up basic.config
+
+<Steps>
+  <Step title="Create a basic.config.ts file">
+    Create a new file called `basic.config.ts` in the root of your project:
+
+    ```ts basic.config.ts
+    export const schema = {
+      project_id: 'YOUR_PROJECT_ID',
+      version: 0,
+      tables: {
+        todos: {
+          type: 'collection',
+          fields: {
+            title: {
+              type: 'string',
+              indexed: true,
+            },
+            completed: {
+              type: 'boolean',
+            }
+          }
+        }
+      }
+    }
+    ```
+    
+    Replace `YOUR_PROJECT_ID` with your Project ID from the [Basic dashboard](https://admin.basic.tech).
+  </Step>
+</Steps>
+
+# Create a Client Provider
+
+<Steps>
+  <Step title="Create a providers file">
+    Create `app/providers.tsx` to wrap your app with BasicProvider:
+
+    ```tsx app/providers.tsx
+    'use client'
+
+    import { BasicProvider } from '@basictech/nextjs/client'
+    import { schema } from '../basic.config'
+
+    export function Providers({ children }: { children: React.ReactNode }) {
+      return (
+        <BasicProvider schema={schema}>
+          {children}
+        </BasicProvider>
+      )
+    }
+    ```
+    
+    <Warning>The `'use client'` directive is required because BasicProvider uses React context and hooks.</Warning>
+  </Step>
+
+  <Step title="Add to your layout">
+    Update `app/layout.tsx` to use the providers:
+
+    ```tsx app/layout.tsx
+    import { Providers } from './providers'
+
+    export default function RootLayout({
+      children,
+    }: {
+      children: React.ReactNode
+    }) {
+      return (
+        <html lang="en">
+          <body>
+            <Providers>{children}</Providers>
+          </body>
+        </html>
+      )
+    }
+    ```
+  </Step>
+</Steps>
+
+# Adding Authentication
+
+<Steps>
+  <Step title="Create a client component with auth">
+    Create a component to handle authentication. This must be a client component:
+
+    ```tsx app/components/AuthButton.tsx
+    'use client'
+
+    import { useBasic } from '@basictech/nextjs/client'
+
+    export function AuthButton() {
+      const { isReady, isSignedIn, user, signIn, signOut } = useBasic()
+
+      if (!isReady) {
+        return <div>Loading...</div>
+      }
+
+      if (!isSignedIn) {
+        return <button onClick={signIn}>Sign In</button>
+      }
+
+      return (
+        <div>
+          <p>Signed in as: {user?.email}</p>
+          <button onClick={signOut}>Sign Out</button>
+        </div>
+      )
+    }
+    ```
+  </Step>
+
+  <Step title="Use in your page">
+    Add the auth component to your page:
+
+    ```tsx app/page.tsx
+    import { AuthButton } from './components/AuthButton'
+
+    export default function Home() {
+      return (
+        <main>
+          <h1>My App</h1>
+          <AuthButton />
+        </main>
+      )
+    }
+    ```
+    
+    Clicking the sign in button will redirect to the Basic.id login page. After signing in, users are redirected back to your app.
+  </Step>
+</Steps>
+
+---
+
+# Important: Import Patterns
+
+<Warning>
+Due to Next.js SSR, you must use the correct import paths to avoid "self is not defined" errors.
+</Warning>
+
+| File Type | Import From |
+|-----------|-------------|
+| Client components (`'use client'`) | `@basictech/nextjs/client` or `@basictech/react` |
+| Server components / middleware | `@basictech/nextjs` |
+
+```tsx
+// ✅ Correct - in a client component
+'use client'
+import { useBasic, BasicProvider } from '@basictech/nextjs/client'
+
+// ✅ Also correct - importing directly from react
+'use client'
+import { useBasic, BasicProvider } from '@basictech/react'
+
+// ❌ Wrong - will cause SSR errors
+import { useBasic } from '@basictech/nextjs' // Don't do this in client components!
+```
+
+---
+
+# Using the Database
+
+Once authenticated, you can use the database in your client components:
+
+```tsx app/components/TodoList.tsx
+'use client'
+
+import { useBasic, useQuery } from '@basictech/nextjs/client'
+
+export function TodoList() {
+  const { db, isSignedIn } = useBasic()
+  
+  // Subscribe to todos - automatically updates when data changes
+  const todos = useQuery(() => db.collection('todos').getAll())
+
+  const addTodo = async () => {
+    await db.collection('todos').add({
+      title: 'New todo',
+      completed: false
+    })
+  }
+
+  if (!isSignedIn) {
+    return <p>Please sign in to view todos</p>
+  }
+
+  return (
+    <div>
+      <button onClick={addTodo}>Add Todo</button>
+      <ul>
+        {todos?.map((todo) => (
+          <li key={todo.id}>{todo.title}</li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+```
+
+---
+
+# Next Steps
+
+- [Database Modes](/basic-nextjs/nextjs-modes) - Learn about sync vs remote mode
+- [Middleware](/basic-nextjs/nextjs-middleware) - Protect routes with authentication
+- [Database Methods](/sdk-reference/react-db) - Full database API reference
+

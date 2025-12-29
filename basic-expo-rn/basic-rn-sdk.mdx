@@ -58,13 +58,13 @@ Use the `useBasic` hook from `@basictech/expo` inside your components to access 
 ```tsx
 import { useBasic } from '@basictech/expo';
 
-const { user, login, signout, db, isLoading, isSignedIn } = useBasic();
+const { user, signIn, signOut, db, isLoading, isSignedIn } = useBasic();
 ```
 
 **Returned properties:**  
 - `user`: The authenticated user or null.
-- `login()`: Starts the OAuth login flow.
-- `signout()`: Logs the user out, clearing all tokens.
+- `signIn()`: Starts the OAuth login flow.
+- `signOut()`: Logs the user out, clearing all tokens.
 - `db`: The main [database client](/sdk-reference/expo-rn).
 - `isLoading`: True during authentication state checks.
 - `isSignedIn`: Whether a user is authenticated.

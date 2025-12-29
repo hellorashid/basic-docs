@@ -1,0 +1,250 @@
+---
+title: "Database Modes: Sync vs Remote"
+description: "Understanding the two database modes in the Basic SDK"
+---
+
+The Basic SDK supports two database modes that determine how data is stored and synchronized. Choose the mode that best fits your application's needs.
+
+# Overview
+
+| Feature | Sync Mode (Default) | Remote Mode |
+|---------|---------------------|-------------|
+| Local Storage | IndexedDB | None |
+| Offline Support | Yes | No |
+| Real-time Updates | Yes (WebSocket) | No |
+| `useQuery` Auto-refresh | Yes | No |
+| SSR Compatible | Partial | Yes |
+| Authentication Required | For sync only | For all operations |
+
+---
+
+# Sync Mode (Default)
+
+Sync mode provides a local-first experience with automatic synchronization to the cloud.
+
+```tsx app/providers.tsx
+'use client'
+
+import { BasicProvider } from '@basictech/nextjs/client'
+import { schema } from '../basic.config'
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    // dbMode defaults to 'sync'
+    <BasicProvider schema={schema}>
+      {children}
+    </BasicProvider>
+  )
+}
+```
+
+## How It Works
+
+1. Data is stored locally in IndexedDB
+2. Changes are immediately available locally (instant UI updates)
+3. A WebSocket connection syncs changes to/from the cloud
+4. Other devices and users receive updates in real-time
+
+## Benefits
+
+- **Works Offline**: Users can read and write data without an internet connection. Changes sync when they reconnect.
+- **Instant UI**: No loading spinners for data operations—changes appear immediately.
+- **Real-time Sync**: All connected clients see changes instantly via WebSocket.
+- **`useQuery` Auto-refresh**: Components using `useQuery` automatically re-render when data changes.
+
+## Considerations
+
+- Requires IndexedDB (browser environment)
+- Initial sync downloads all user data
+- Not suitable for server-side rendering of user data
+
+## Example Usage
+
+```tsx
+'use client'
+
+import { useBasic, useQuery } from '@basictech/nextjs/client'
+
+export function TodoList() {
+  const { db } = useBasic()
+  
+  // useQuery subscribes to changes - automatically re-renders
+  const todos = useQuery(() => db.collection('todos').getAll())
+
+  const addTodo = async () => {
+    // Appears instantly in the UI, syncs to cloud in background
+    await db.collection('todos').add({ title: 'New todo', completed: false })
+  }
+
+  return (
+    <ul>
+      {todos?.map(todo => <li key={todo.id}>{todo.title}</li>)}
+    </ul>
+  )
+}
+```
+
+---
+
+# Remote Mode
+
+Remote mode makes direct REST API calls to the server without local storage.
+
+```tsx app/providers.tsx
+'use client'
+
+import { BasicProvider } from '@basictech/nextjs/client'
+import { schema } from '../basic.config'
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <BasicProvider schema={schema} dbMode="remote">
+      {children}
+    </BasicProvider>
+  )
+}
+```
+
+## How It Works
+
+1. Every database operation makes an HTTP request to the Basic API
+2. No local caching or storage
+3. Data is fetched fresh on each request
+
+## Benefits
+
+- **No IndexedDB Dependencies**: Works in environments where IndexedDB isn't available
+- **SSR-Friendly**: Better for server-side rendering patterns
+- **Simple Architecture**: No sync complexity, just API calls
+- **Always Fresh**: Data is always fetched from the server
+
+## Considerations
+
+- **Requires Internet**: No offline support
+- **Requires Authentication**: All operations (including reads) require the user to be signed in
+- **No Real-time Updates**: `useQuery` won't auto-update; you need to manually refetch
+- **Network Latency**: Each operation waits for the network round-trip
+
+## Example Usage
+
+```tsx
+'use client'
+
+import { useBasic } from '@basictech/nextjs/client'
+import { useState, useEffect } from 'react'
+
+export function TodoList() {
+  const { db, isSignedIn } = useBasic()
+  const [todos, setTodos] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  // In remote mode, manually fetch and manage state
+  useEffect(() => {
+    if (isSignedIn) {
+      loadTodos()
+    }
+  }, [isSignedIn])
+
+  const loadTodos = async () => {
+    setLoading(true)
+    const data = await db.collection('todos').getAll()
+    setTodos(data)
+    setLoading(false)
+  }
+
+  const addTodo = async () => {
+    await db.collection('todos').add({ title: 'New todo', completed: false })
+    // Manually refetch after mutation
+    await loadTodos()
+  }
+
+  if (!isSignedIn) return <p>Please sign in</p>
+  if (loading) return <p>Loading...</p>
+
+  return (
+    <ul>
+      {todos.map(todo => <li key={todo.id}>{todo.title}</li>)}
+    </ul>
+  )
+}
+```
+
+---
+
+# Error Handling in Remote Mode
+
+Remote mode throws `NotAuthenticatedError` when attempting write operations without being signed in:
+
+```tsx
+import { NotAuthenticatedError } from '@basictech/nextjs/client'
+
+const addTodo = async () => {
+  try {
+    await db.collection('todos').add({ title: 'New todo' })
+  } catch (error) {
+    if (error instanceof NotAuthenticatedError) {
+      // Prompt user to sign in
+      console.log('Please sign in to add todos')
+    } else {
+      throw error
+    }
+  }
+}
+```
+
+## Graceful Degradation for Reads
+
+In remote mode, read operations gracefully handle unauthenticated state:
+
+| Operation | Unauthenticated Behavior |
+|-----------|--------------------------|
+| `getAll()` | Returns empty array `[]` |
+| `get(id)` | Returns `null` |
+| `filter()` | Returns empty array `[]` |
+| `add()` | Throws `NotAuthenticatedError` |
+| `put()` | Throws `NotAuthenticatedError` |
+| `update()` | Throws `NotAuthenticatedError` |
+| `delete()` | Throws `NotAuthenticatedError` |
+
+---
+
+# When to Use Each Mode
+
+## Use Sync Mode When:
+
+- Building a PWA or offline-capable app
+- You want real-time collaboration features
+- Instant UI feedback is important
+- Users work with moderate amounts of data
+
+## Use Remote Mode When:
+
+- Building an SSR-heavy Next.js application
+- IndexedDB isn't available in your environment
+- You don't need offline support
+- You want simple, stateless API calls
+- Data is too large to sync locally
+
+---
+
+# Checking Current Mode
+
+You can check which mode is active using `dbMode` from `useBasic`:
+
+```tsx
+'use client'
+
+import { useBasic } from '@basictech/nextjs/client'
+
+export function DbStatus() {
+  const { dbMode, dbStatus } = useBasic()
+
+  return (
+    <div>
+      <p>Mode: {dbMode}</p>
+      <p>Status: {dbStatus}</p>
+    </div>
+  )
+}
+```
+

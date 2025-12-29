@@ -1,0 +1,205 @@
+---
+title: "Middleware: Route Protection"
+description: "Protect routes with authentication middleware in Next.js"
+---
+
+The `@basictech/nextjs` package includes middleware utilities to protect routes and require authentication before accessing certain pages.
+
+# Quick Setup
+
+Create a `middleware.ts` file in your project root:
+
+```ts middleware.ts
+import { createBasicMiddleware } from '@basictech/nextjs'
+
+export const middleware = createBasicMiddleware({
+  protectedRoutes: ['/dashboard/*', '/settings/*', '/api/protected/*'],
+  publicRoutes: ['/login', '/signup', '/'],
+  signInUrl: '/login'
+})
+
+export const config = {
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)']
+}
+```
+
+With this setup:
+- Routes matching `/dashboard/*`, `/settings/*`, or `/api/protected/*` require authentication
+- Unauthenticated users are redirected to `/login`
+- The return URL is preserved so users can be redirected back after signing in
+
+---
+
+# Configuration Options
+
+## createBasicMiddleware
+
+The main function to create authentication middleware.
+
+```ts
+createBasicMiddleware(config?: BasicMiddlewareConfig)
+```
+
+### Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `protectedRoutes` | `string[]` | `[]` | Routes that require authentication. Supports glob patterns like `/dashboard/*` |
+| `publicRoutes` | `string[]` | `['/login', '/signup', '/auth/*']` | Routes that are always public (bypass auth check) |
+| `signInUrl` | `string` | `'/login'` | Where to redirect unauthenticated users |
+| `afterSignInUrl` | `string` | `'/'` | Where to redirect after successful sign-in |
+| `tokenCookieName` | `string` | `'basic_access_token'` | Cookie name for the access token |
+| `fullTokenCookieName` | `string` | `'basic_token'` | Cookie name for the full token object |
+
+### Route Matching
+
+Routes support simple glob patterns with `*` wildcard:
+
+```ts
+{
+  protectedRoutes: [
+    '/dashboard/*',      // Matches /dashboard, /dashboard/settings, etc.
+    '/api/user/*',       // Matches /api/user, /api/user/profile, etc.
+    '/admin',            // Matches exactly /admin
+  ],
+  publicRoutes: [
+    '/auth/*',           // Matches /auth/callback, /auth/error, etc.
+    '/',                 // Matches exactly /
+  ]
+}
+```
+
+---
+
+# Alternative: Simple Auth Middleware
+
+For simpler use cases, use `withBasicAuth` which applies default settings:
+
+```ts middleware.ts
+import { withBasicAuth } from '@basictech/nextjs'
+
+export const middleware = withBasicAuth
+
+export const config = {
+  // Only run middleware on these routes
+  matcher: ['/dashboard/:path*', '/settings/:path*']
+}
+```
+
+This redirects unauthenticated users to `/login` for any matched routes.
+
+---
+
+# Utility Functions
+
+## getAuthFromRequest
+
+Check authentication status from a request:
+
+```ts
+import { getAuthFromRequest } from '@basictech/nextjs'
+
+export function middleware(request: NextRequest) {
+  const { isAuthenticated, token } = getAuthFromRequest(request)
+  
+  if (!isAuthenticated) {
+    // Handle unauthenticated request
+  }
+  
+  // Use token for API calls if needed
+}
+```
+
+## getReturnUrl
+
+Get the return URL from search params (useful on login pages):
+
+```ts
+import { getReturnUrl } from '@basictech/nextjs'
+
+export function middleware(request: NextRequest) {
+  const returnUrl = getReturnUrl(request, '/')
+  // After sign-in, redirect to returnUrl
+}
+```
+
+---
+
+# Full Example
+
+```ts middleware.ts
+import { createBasicMiddleware } from '@basictech/nextjs'
+
+export const middleware = createBasicMiddleware({
+  // Protect dashboard and API routes
+  protectedRoutes: [
+    '/dashboard/*',
+    '/settings/*',
+    '/api/user/*',
+    '/api/protected/*'
+  ],
+  
+  // Keep these public
+  publicRoutes: [
+    '/',
+    '/login',
+    '/signup',
+    '/about',
+    '/api/public/*',
+    '/auth/*'
+  ],
+  
+  // Custom sign-in page
+  signInUrl: '/login',
+  
+  // Redirect here after signing in (if no return URL)
+  afterSignInUrl: '/dashboard'
+})
+
+// Run middleware on all routes except static files
+export const config = {
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)']
+}
+```
+
+---
+
+# Login Page Example
+
+Create a login page that handles the return URL:
+
+```tsx app/login/page.tsx
+'use client'
+
+import { useBasic } from '@basictech/nextjs/client'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+
+export default function LoginPage() {
+  const { isReady, isSignedIn, signIn } = useBasic()
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  
+  const returnUrl = searchParams.get('returnUrl') || '/dashboard'
+
+  useEffect(() => {
+    // If already signed in, redirect to return URL
+    if (isReady && isSignedIn) {
+      router.push(returnUrl)
+    }
+  }, [isReady, isSignedIn, returnUrl, router])
+
+  if (!isReady) {
+    return <div>Loading...</div>
+  }
+
+  return (
+    <div>
+      <h1>Sign In</h1>
+      <p>Sign in to access your dashboard</p>
+      <button onClick={signIn}>Sign In with Basic</button>
+    </div>
+  )
+}
+```
+

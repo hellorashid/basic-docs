@@ -1,90 +1,84 @@
 ---
 title: 'Full Guide: Build a to-do app'
-description: "A full step-by-step guide to building a simple to-do app using Basic's create-lofi-app"
+description: "A step-by-step guide to building a simple to-do app using Basic"
 ---
 
 In this guide, you will:
 
-1. Create a new local-first project using create-lofi-app
+1. Set up a new React project with Basic
 2. Create a simple To-Do UI 
 3. Connect to a Basic project and set up your schema
 4. Add sign in and sign out functionality
 5. Hook up to Basic DB so that your users can save their to-dos across their devices
 
-## Create a new local-first project
+## Create a new React project
 
 <Steps>
-  <Step title="Create a new local-first project">
+  <Step title="Create a new Vite React project">
     ```bash Terminal
-    # create a new local-first project:
-    npx create-lofi-app
+    npm create vite@latest my-todo-app -- --template react-ts
+    cd my-todo-app
+    npm install
     ```
-    When prompted in the CLI, enter `y` for installing the vite package. 
-    Then give your project a name.
-    And finally choose the Basic + Tailwind variant.
   </Step>
-  <Step title="install npm packages">
-    `cd project-name` into your project, run `npm i`, and start your server with `npm run dev`:
-
+  <Step title="Install Basic and Tailwind">
     ```bash Terminal
-    # first, cd into your project
-    cd project-name
-
-    # then, install all packages
-    npm i
-
-    # start your server
+    npm install @basictech/react
+    npm install -D tailwindcss postcss autoprefixer
+    npx tailwindcss init -p
+    ```
+  </Step>
+  <Step title="Configure Tailwind">
+    Update `tailwind.config.js`:
+    ```js tailwind.config.js
+    /** @type {import('tailwindcss').Config} */
+    export default {
+      content: [
+        "./index.html",
+        "./src/**/*.{js,ts,jsx,tsx}",
+      ],
+      theme: {
+        extend: {},
+      },
+      plugins: [],
+    }
+    ```
+    
+    Replace `src/index.css` with:
+    ```css src/index.css
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
+    ```
+  </Step>
+  <Step title="Start your dev server">
+    ```bash Terminal
     npm run dev
     ```
+    Navigate to `http://localhost:5173` to see your app running.
   </Step>
 </Steps>
 
-You'll now be able to navigate to `http://localhost:5173` and see the app running as below:
-
-<img
-  className="block"
-  src="/images/create-lofi-app.png"
-  alt="create-lofi-app template"
-/>
-
 ## Create a simple To-Do UI 
 
-We'll replace the existing homepage UI with a simple To-Do app UI using Tailwind that comes preinstalled with the create-lofi-app template.  
-
 <Steps>
-  <Step title="Delete the existing homepagecode">
-  Let's replace the code in your `src/App.tsx` file with the following for a clean slate:
+  <Step title="Create the basic layout">
+    Replace the code in your `src/App.tsx` file:
 
-  ```tsx
-  import './App.css'
-
-  function App() {
-    return (
-      <>
-        <h1>my lofi to-do app</h1>
-      </>
-    )
-  }
-
-  export default App
-  ```
-  </Step>
-  <Step title="Add an input + button">
-    Let's add an input, and a button to the app, and add some basic Tailwind styling
-    ```tsx App.tsx
+    ```tsx src/App.tsx
     import './App.css'
 
     function App() {
       return (
-        <div className="flex flex-col items-center">
-          <h1 className="mb-4">my lofi to-do app</h1>
+        <div className="flex flex-col items-center p-8">
+          <h1 className="text-2xl font-bold mb-4">my lofi to-do app</h1>
           <div className="flex gap-2">
             <input
               type="text"
               placeholder="Add a to-do"
               className="border rounded px-2 py-1"
             />
-            <button className="bg-blue-500 px-3 py-1 rounded">
+            <button className="bg-blue-500 text-white px-3 py-1 rounded">
               Add
             </button>
           </div>
@@ -97,60 +91,18 @@ We'll replace the existing homepage UI with a simple To-Do app UI using Tailwind
   </Step>
 </Steps>
 
-You should now see a simple input and button on the page:
-
-<img
-  className="block"
-  src="/images/input-and-button.png"
-  alt="lofi to-do ui"
-/>
-
-## Connect to a Basic project and set up your schema
-
-The fastest way to connect to a Basic project is to use the [Basic CLI](/get-started/cli).
+## Connect to a Basic project
 
 <Steps>
-  <Step title="Install the Basic CLI">
-     Make sure you are in the directory of your project.
-    ```bash Terminal
-    # install the basic cli
-    npm install -g @basictech/cli
-
-    # create a Basic account and login
-    basic login
-    ```
-    You'll be redirected in your browser to sign up for a Basic account and login.
-    Once you've logged in, you'll be able to connect to a Basic project.
+  <Step title="Create a Basic account">
+    Go to [admin.basic.tech](https://admin.basic.tech) and create a free account. Then create a new project and copy your Project ID.
   </Step>
-  <Step title="Connect to a Basic project">
-    ```bash Terminal
-    # connect to a Basic project
-    basic init
-    ```
-    Choose to `Create new project`
-    <img
-      className="block"
-      src="/images/basic-init-start.png"
-      alt="basic init"
-    />
-
-    You'll then be prompted to give your Basic project a name (this doesn't have to match your directory name, but it's best to keep it consistent), and to select a project template.
+  <Step title="Create basic.config.ts">
+    Create a `basic.config.ts` file in your project root:
     
-    Choose the `typescript` and hit `Yep!`
-
-    <img
-      className="block"
-      src="/images/basic-init-project.png"
-      alt="basic init template"
-    />
-  </Step>
-  <Step title="Set up your schema">
-    If you navigate to the `src/basic.config.ts` file, you'll see that it's already set up for you now with a schema object with a `project_id`!
-
-    Let's change the schema to match the needs of our To-Do app, and add a name string field and a completed boolean field.
-    ```tsx basic.config.ts
+    ```ts basic.config.ts
     export const schema = {
-      project_id: "your-project-id",
+      project_id: "YOUR_PROJECT_ID", // Replace with your project ID
       version: 0,
       tables: {
         todos: {
@@ -165,181 +117,115 @@ The fastest way to connect to a Basic project is to use the [Basic CLI](/get-sta
           }
         }
       }
-  }
+    }
     ```
   </Step>
-  <Step title="Push the changes to our schema">
-    ```bash Terminal
-    # push the changes to our schema
-    basic push
+  <Step title="Add BasicProvider to main.tsx">
+    Update `src/main.tsx`:
+    
+    ```tsx src/main.tsx
+    import { StrictMode } from 'react'
+    import { createRoot } from 'react-dom/client'
+    import { BasicProvider } from '@basictech/react'
+    import { schema } from '../basic.config'
+    import App from './App'
+    import './index.css'
+
+    createRoot(document.getElementById('root')!).render(
+      <StrictMode>
+        <BasicProvider schema={schema}>
+          <App />
+        </BasicProvider>
+      </StrictMode>,
+    )
     ```
   </Step>
 </Steps>
 
 ## Add sign in and sign out functionality
-It's very easy to add the ability to have your users sign in and sign out of your to-do app.
+
 <Steps>
-  <Step title="Add a login and logout button to App.tsx">
-      Now navigate to  `src/App.tsx` and import `signin`, `signout`, `isSignedIn`, and `user`. 
-      ```tsx App.tsx
-      /// add back the UseBasic import
-      import { useBasic } from '@basictech/react'
-      import './App.css'
+  <Step title="Add auth buttons to App.tsx">
+    Update `src/App.tsx`:
+    
+    ```tsx src/App.tsx
+    import { useBasic } from '@basictech/react'
+    import './App.css'
 
-      function App() {
-        // Import signin to enable the user to sign in
-        // Import signout to enable the user to sign out
-        // Import isSignedIn to check if the user is signed in
-        // Import user to get the user's information once they're signed in
-        const { signin, isSignedIn, user, signout } = useBasic()
+    function App() {
+      const { signIn, signOut, isSignedIn, user } = useBasic()
 
-        return (
-          <div className="flex flex-col items-center">
-            <h1 className="mb-4">my lofi to-do app</h1>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Add a to-do"
-                className="border rounded px-2 py-1"
-              />
-              <button className="bg-blue-500 px-3 py-1 rounded">
-                Add
-              </button>
-            </div>
+      return (
+        <div className="flex flex-col items-center p-8">
+          <h1 className="text-2xl font-bold mb-4">my lofi to-do app</h1>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Add a to-do"
+              className="border rounded px-2 py-1"
+            />
+            <button className="bg-blue-500 text-white px-3 py-1 rounded">
+              Add
+            </button>
+          </div>
 
-            {/* if not signed in yet, show the sign in button */}
-            {/* when signed in, show the user's email */}
+          <div className="mt-8">
             {isSignedIn ? (
-              <div className="mt-12">
+              <div className="text-center">
                 <p>Signed in as: {user?.email}</p>
-                {/* Add a button to sign out */}
-                <button onClick={signout}>Sign Out</button>
+                <button 
+                  onClick={signOut}
+                  className="mt-2 text-red-500 hover:underline"
+                >
+                  Sign Out
+                </button>
               </div>
             ) : (
-              <button className="mt-12" onClick={signin}>Sign In</button>
+              <button 
+                onClick={signIn}
+                className="bg-green-500 text-white px-4 py-2 rounded"
+              >
+                Sign In
+              </button>
             )}
           </div>
-        )
-      }
+        </div>
+      )
+    }
 
-      export default App
-      ```
+    export default App
+    ```
   </Step>
 </Steps>
 
-All of it put together should look like this when signed in:
-
-<img
-  className="block"
-  src="/images/signed-in.png"
-  alt="signed in"
-/>
-
 ## Hook up to Basic DB
 
-Now that we have the ability to sign in and sign out, we can hook up to Basic DB so that our users can save their to-dos across their devices.
-
 <Steps>
-  <Step title="Submit a task to Basic DB">
-    We will add some state to capture our input value, implement the `.add()` method, and then `console.log` the result.
-    ```tsx App.tsx
+  <Step title="Add task creation">
+    Update `src/App.tsx` to add state and the `addTask` function:
+    
+    ```tsx src/App.tsx
     import { useBasic } from '@basictech/react'
-    // import useState
     import { useState } from 'react'
     import './App.css'
 
     function App() {
-      // add the db import
-      const { signin, signout, isSignedIn, user, db } = useBasic()
-
-      // add the taskInput state
+      const { signIn, signOut, isSignedIn, user, db } = useBasic()
       const [taskInput, setTaskInput] = useState('')
 
-      // add the addTask function
-      const addTask = () => {
-        if (!taskInput.trim()) return // only runs if the taskInput is not empty
-
-        db.collection('todos').add({
-          name: taskInput,
-          completed: false
-        })
-          .then((item: any) => {
-            setTaskInput('') // Clear input after successful add
-            console.log("Successfully added new todo with ID: ", item)
-          })
-          .catch((error: any) => {
-            console.error("Error adding todo: ", error)
-          })
-      }
-
-      return (
-        <div className="flex flex-col items-center">
-          <h1 className="mb-4">my lofi to-do app</h1>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Add a to-do"
-              className="border rounded px-2 py-1"
-              // add the value and onChange states so we can capture the input
-              value={taskInput}
-              onChange={(e) => setTaskInput(e.target.value)}
-            />
-
-            {/* add the addTask function to the button */}
-            <button className="bg-blue-500 px-3 py-1 rounded" onClick={addTask}>
-              Add
-            </button>
-          </div>
-
-          {isSignedIn ? (
-            <div className="mt-12">
-              <p>Signed in as: {user?.email}</p>
-              <button onClick={signout}>Sign Out</button>
-            </div>
-          ) : (
-            <button className="mt-12" onClick={signin}>Sign In</button>
-          )}
-        </div>
-      )
-    }
-
-    export default App
-    ```
-  </Step>
-  <Step title="Read and display the tasks">
-    Now let's retrieve and display the tasks!
-    ```tsx App.tsx
-    / add useQuery hook import
-    import { useBasic, useQuery } from '@basictech/react'
-    import { useState } from 'react'
-    import './App.css'
-
-    function App() {
-      const { signin, signout, isSignedIn, user, db } = useBasic()
-      const [taskInput, setTaskInput] = useState('')
-
-      // get all tasks from the database
-      const tasks = useQuery(() => db.collection('todos').getAll())
-
-      const addTask = () => {
+      const addTask = async () => {
         if (!taskInput.trim()) return
-
-        db.collection('todos').add({
+        
+        await db.collection('todos').add({
           name: taskInput,
           completed: false
         })
-          .then((item: any) => {
-            setTaskInput('')
-            console.log("Successfully added new todo with ID: ", item)
-          })
-          .catch((error: any) => {
-            console.error("Error adding todo: ", error)
-          })
+        setTaskInput('')
       }
 
       return (
-        <div className="flex flex-col items-center">
-          <h1 className="mb-4">my lofi to-do app</h1>
+        <div className="flex flex-col items-center p-8">
+          <h1 className="text-2xl font-bold mb-4">my lofi to-do app</h1>
           <div className="flex gap-2">
             <input
               type="text"
@@ -347,83 +233,75 @@ Now that we have the ability to sign in and sign out, we can hook up to Basic DB
               className="border rounded px-2 py-1"
               value={taskInput}
               onChange={(e) => setTaskInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addTask()}
             />
-
-            <button className="bg-blue-500 px-3 py-1 rounded" onClick={addTask}>
+            <button 
+              className="bg-blue-500 text-white px-3 py-1 rounded"
+              onClick={addTask}
+            >
               Add
             </button>
           </div>
 
-          {/* Add the tasks list here */}
-          <div className="mt-4 w-full max-w-md">
-            {tasks?.map((task: any) => (
-              <div
-                key={task.id}
-                className="flex items-center p-2"
-              >
-                <span>{task.name}</span>
+          <div className="mt-8">
+            {isSignedIn ? (
+              <div className="text-center">
+                <p>Signed in as: {user?.email}</p>
+                <button 
+                  onClick={signOut}
+                  className="mt-2 text-red-500 hover:underline"
+                >
+                  Sign Out
+                </button>
               </div>
-            ))}
+            ) : (
+              <button 
+                onClick={signIn}
+                className="bg-green-500 text-white px-4 py-2 rounded"
+              >
+                Sign In
+              </button>
+            )}
           </div>
-
-          {isSignedIn ? (
-            <div className="mt-12">
-              <p>Signed in as: {user?.email}</p>
-              <button onClick={signout}>Sign Out</button>
-            </div>
-          ) : (
-            <button className="mt-12" onClick={signin}>Sign In</button>
-          )}
         </div>
       )
     }
 
     export default App
     ```
-    With just a few lines you were able to display your tasks as such:
-    <img
-      className="block"
-      src="/images/display-tasks.png"
-      alt="display tasks"
-    />
   </Step>
-  <Step title="Add a delete button">
-    Now let's add a delete button to our tasks using the `.delete()` method.
-    ```tsx App.tsx
+  <Step title="Display and delete tasks">
+    Add `useQuery` to display tasks and a delete function:
+    
+    ```tsx src/App.tsx
     import { useBasic, useQuery } from '@basictech/react'
     import { useState } from 'react'
     import './App.css'
 
     function App() {
-      const { signin, signout, isSignedIn, user, db } = useBasic()
+      const { signIn, signOut, isSignedIn, user, db } = useBasic()
       const [taskInput, setTaskInput] = useState('')
-
+      
+      // Subscribe to all todos - auto-updates when data changes
       const tasks = useQuery(() => db.collection('todos').getAll())
 
-      const addTask = () => {
+      const addTask = async () => {
         if (!taskInput.trim()) return
-
-        db.collection('todos').add({
+        
+        await db.collection('todos').add({
           name: taskInput,
           completed: false
         })
-          .then((item: any) => {
-            setTaskInput('')
-            console.log("Successfully added new todo with ID: ", item)
-          })
-          .catch((error: any) => {
-            console.error("Error adding todo: ", error)
-          })
+        setTaskInput('')
       }
 
-      // add the deleteTask function
-      const deleteTask = (id: string) => {
-        db.collection('todos').delete(id)
+      const deleteTask = async (id: string) => {
+        await db.collection('todos').delete(id)
       }
 
       return (
-        <div className="flex flex-col items-center">
-          <h1 className="mb-4">my lofi to-do app</h1>
+        <div className="flex flex-col items-center p-8">
+          <h1 className="text-2xl font-bold mb-4">my lofi to-do app</h1>
           <div className="flex gap-2">
             <input
               type="text"
@@ -431,19 +309,22 @@ Now that we have the ability to sign in and sign out, we can hook up to Basic DB
               className="border rounded px-2 py-1"
               value={taskInput}
               onChange={(e) => setTaskInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addTask()}
             />
-
-            <button className="bg-blue-500 px-3 py-1 rounded" onClick={addTask}>
+            <button 
+              className="bg-blue-500 text-white px-3 py-1 rounded"
+              onClick={addTask}
+            >
               Add
             </button>
           </div>
 
-          {/* update styling to add a delete button */}
-          <div className="mt-4 w-full max-w-md">
+          {/* Task list */}
+          <div className="mt-6 w-full max-w-md">
             {tasks?.map((task: any) => (
               <div
                 key={task.id}
-                className="flex items-center justify-between p-2 border-b"
+                className="flex items-center justify-between p-3 border-b"
               >
                 <span>{task.name}</span>
                 <button
@@ -456,32 +337,41 @@ Now that we have the ability to sign in and sign out, we can hook up to Basic DB
             ))}
           </div>
 
-          {isSignedIn ? (
-            <div className="mt-12">
-              <p>Signed in as: {user?.email}</p>
-              <button onClick={signout}>Sign Out</button>
-            </div>
-          ) : (
-            <button className="mt-12" onClick={signin}>Sign In</button>
-          )}
+          <div className="mt-8">
+            {isSignedIn ? (
+              <div className="text-center">
+                <p>Signed in as: {user?.email}</p>
+                <button 
+                  onClick={signOut}
+                  className="mt-2 text-red-500 hover:underline"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={signIn}
+                className="bg-green-500 text-white px-4 py-2 rounded"
+              >
+                Sign In
+              </button>
+            )}
+          </div>
         </div>
       )
     }
 
     export default App
     ```
-    The delete button would look like this:
-    <img
-      className="block"
-      src="/images/delete-tasks.png"
-      alt="delete task"
-    />
   </Step>
 </Steps>
 
-And that's it! You've now built a local-first to-do app that allows your users to sign in, sign out, and save their to-dos across their devices.
+And that's it! You've built a local-first to-do app that allows your users to sign in and save their to-dos across their devices.
 
-You'll also notice how snappily all the changes are reflected on the app, from task creation to deletion - this is the power of local-first architecture!
+Notice how snappily all the changes are reflected - from task creation to deletion. This is the power of local-first architecture!
 
+## Next steps
 
-
+- [Database Methods](/sdk-reference/react-db) - Learn about all available database operations
+- [React Hooks](/sdk-reference/react-hooks) - Explore all available hooks
+- [Schema Guide](/basic-react/react-schema) - Learn how to customize your schema

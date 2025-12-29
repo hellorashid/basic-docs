@@ -1,36 +1,47 @@
 ---
-title: 'Hooks (getToken, signin, etc.)'
+title: 'Hooks (useBasic, useQuery)'
 ---
 # useBasic
-The `useBasic` hook is used to access the database and other Basic features.
+The `useBasic` hook is used to access authentication, database, and other Basic features.
 
 Any of these properties can be accessed by destructuring the `useBasic` hook.
 
-### db
-<ParamField query="db" type="json">
-  The database object, which you can use to [read, add, update, and delete items](/sdk-reference/react-db)
-</ParamField>
+## Auth State
 
-### dbStatus
-<ParamField query="dbStatus" type="string">
-  Fetches the status of the database. Possible values are:
-  - DB starts with `'LOADING'`
-  - Then it goes to `'CONNECTING'`
-  - If it connects successfully, it goes to `'ONLINE'`
-  - If there's a non-fatal error, it goes to `'ERROR_WILL_RETRY'`. If there's a fatal error, it goes to `'ERROR'`
-  - But if it's just offline then `'OFFLINE'`
-
+### isReady
+<ParamField query="isReady" type="boolean">
+  Boolean that indicates when auth state has been determined. Use this as a loading state for your app while auth is being verified.
     ```tsx App.tsx
     import { useBasic } from '@basictech/react'
 
     function App() {
-      const { dbStatus } = useBasic()
+      const { isReady, isSignedIn } = useBasic()
 
-      console.log("Check database status: ", dbStatus)
+      if (!isReady) return <div>Loading...</div>
+
+      return (
+        <div>{isSignedIn ? "User is signed in" : "User is signed out"}</div>
+      )
+    }
+    ```
+  <Note>`isAuthReady` is a deprecated alias for `isReady` and will be removed in a future version.</Note>
+</ParamField>
+
+### isSignedIn
+<ParamField query="isSignedIn" type="boolean">
+  Boolean that checks if a user is signed in. Only use after `isReady` is true.
+    ```tsx App.tsx
+    import { useBasic } from '@basictech/react'
+
+    function App() {
+      const { isReady, isSignedIn } = useBasic()
 
       return (
         <>
-          {/* render items */}
+          {isReady ? 
+            <div>{isSignedIn ? "User is signed in" : "User is signed out"}</div> :
+            <div>Loading...</div>
+          }
         </>
       )
     }
@@ -38,17 +49,17 @@ Any of these properties can be accessed by destructuring the `useBasic` hook.
 </ParamField>
 
 ### user
-<ParamField query="user" type="json">
-  Fetches the user object containing the user's ID, email, and name
+<ParamField query="user" type="User | null">
+  The current user object containing the user's ID, email, and name. Returns `null` when not signed in.
     ```tsx App.tsx
     import { useBasic } from '@basictech/react'
 
     function App() {
       const { user } = useBasic()
 
-      console.log("Fetch user ID: ", user.id)
-      console.log("Fetch user email: ", user.email)
-      console.log("Fetch user name: ", user.name)
+      console.log("Fetch user ID: ", user?.id)
+      console.log("Fetch user email: ", user?.email)
+      console.log("Fetch user name: ", user?.name)
 
       return (
         <>
@@ -57,16 +68,107 @@ Any of these properties can be accessed by destructuring the `useBasic` hook.
       )
     }
     ```
+  
+  **User type:**
+  ```typescript
+  type User = {
+    id?: string
+    email?: string
+    name?: string
+    fullName?: string
+    primaryEmailAddress?: { emailAddress: string }
+  }
+  ```
+</ParamField>
+
+## Auth Methods
+
+### signIn
+<ParamField query="signIn" type="() => Promise<void>">
+  Function to sign a user in via the Basic OAuth flow. It will redirect the user to the Basic login page, and then redirect them back to the page they were on.
+    ```tsx App.tsx
+    import { useBasic } from '@basictech/react'
+
+    function App() {
+      const { signIn } = useBasic()
+
+      return (
+        <>
+          <button onClick={signIn}>Sign in</button>
+        </>
+      )
+    }
+    ```
+  <Note>`signin` (lowercase) is a deprecated alias for `signIn` and will be removed in a future version.</Note>
+</ParamField>
+
+### signOut
+<ParamField query="signOut" type="() => Promise<void>">
+  Function to sign a user out. User remains on your page after signing out, but `isSignedIn` will be set to false until they sign in again.
+    ```tsx App.tsx
+    import { useBasic } from '@basictech/react'
+
+    function App() {
+      const { signOut } = useBasic()
+
+      return (
+        <>
+          <button onClick={signOut}>Sign out</button>
+        </>
+      )
+    }
+    ```
+  <Note>`signout` (lowercase) is a deprecated alias for `signOut` and will be removed in a future version.</Note>
+</ParamField>
+
+### signInWithCode
+<ParamField query="signInWithCode" type="(code: string, state?: string) => Promise<AuthResult>">
+  Function to complete authentication using an OAuth authorization code. Useful for custom OAuth flows or React Native apps where you handle the redirect manually.
+    ```tsx App.tsx
+    import { useBasic } from '@basictech/react'
+
+    function App() {
+      const { signInWithCode } = useBasic()
+
+      const handleOAuthCallback = async (code: string, state: string) => {
+        const result = await signInWithCode(code, state)
+        if (result.success) {
+          console.log('Signed in successfully!')
+        } else {
+          console.error('Sign in failed:', result.error)
+        }
+      }
+
+      return <>{/* OAuth callback handling */}</>
+    }
+    ```
+  
+  **AuthResult type:**
+  ```typescript
+  type AuthResult = {
+    success: boolean
+    error?: string
+    code?: string
+  }
+  ```
 </ParamField>
 
 ### getToken
-<ParamField query="getToken" type="async function">
-  Fetches the user's JWT token, returns a promise. Since it is an async function, you can use it with `await` or `.then()`.
+<ParamField query="getToken" type="() => Promise<string>">
+  Fetches the user's JWT access token. The token is automatically refreshed if expired. Use this for making authenticated API calls to your own backend.
     ```tsx App.tsx
     import { useBasic } from '@basictech/react'
 
     function App() {
       const { getToken } = useBasic()
+
+      const fetchFromMyAPI = async () => {
+        const token = await getToken()
+        const response = await fetch('/api/my-endpoint', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        return response.json()
+      }
 
       return (
         <>
@@ -77,83 +179,74 @@ Any of these properties can be accessed by destructuring the `useBasic` hook.
     ```
 </ParamField>
 
-### signin
-<ParamField query="signin" type="function">
-  Function to sign a user in via the Basic OAuth flow. It will redirect the user to the Basic login page, and then redirect them back to the page they were on.
+### getSignInUrl
+<ParamField query="getSignInUrl" type="(redirectUri?: string) => Promise<string>">
+  Returns the OAuth sign-in URL without redirecting. Useful for custom sign-in flows, React Native apps, or opening in a popup/modal.
     ```tsx App.tsx
     import { useBasic } from '@basictech/react'
 
     function App() {
-      const { signin } = useBasic()
+      const { getSignInUrl } = useBasic()
+
+      const handleCustomSignIn = async () => {
+        const url = await getSignInUrl()
+        // Open in popup, new tab, or handle as needed
+        window.open(url, '_blank')
+      }
+
+      return <button onClick={handleCustomSignIn}>Custom Sign In</button>
+    }
+    ```
+  <Note>`getSignInLink` is a deprecated alias for `getSignInUrl` and will be removed in a future version.</Note>
+</ParamField>
+
+## Database
+
+### db
+<ParamField query="db" type="BasicDB">
+  The database object, which you can use to [read, add, update, and delete items](/sdk-reference/react-db).
+</ParamField>
+
+### dbStatus
+<ParamField query="dbStatus" type="string">
+  The current status of the database connection. Possible values are:
+  - `'LOADING'` - Database is initializing
+  - `'CONNECTING'` - Attempting to connect to sync server
+  - `'ONLINE'` - Connected and syncing
+  - `'SYNCING'` - Actively syncing data
+  - `'OFFLINE'` - No network connection (still works locally)
+  - `'ERROR_WILL_RETRY'` - Non-fatal error, will automatically retry
+  - `'ERROR'` - Fatal error occurred
+
+    ```tsx App.tsx
+    import { useBasic } from '@basictech/react'
+
+    function App() {
+      const { dbStatus } = useBasic()
 
       return (
-        <>
-          <button onClick={signin}>Sign in</button>
-        </>
+        <div>
+          Database status: {dbStatus}
+          {dbStatus === 'OFFLINE' && <span> (Working offline)</span>}
+        </div>
       )
     }
     ```
 </ParamField>
 
-### signout
-<ParamField query="signout" type="function">
-  Function to sign a user out. User remains on your page after signing out, but isSignedIn will be set to false until they sign in again.
-    ```tsx App.tsx
-    import { useBasic } from '@basictech/react'
-
-    function App() {
-      const { signout } = useBasic()
-
-      return (
-        <>
-          <button onClick={signout}>Sign out</button>
-        </>
-      )
-    }
-    ```
+### dbMode
+<ParamField query="dbMode" type="'sync' | 'remote'">
+  The current database mode. See [Database Modes](/basic-nextjs/nextjs-modes) for details.
+  - `'sync'` - Local-first with IndexedDB + real-time WebSocket sync (default)
+  - `'remote'` - Direct REST API calls to server
 </ParamField>
 
-### isAuthReady
-<ParamField query="isAuthReady" type="boolean">
-  Boolean that can be used as a loading state for your app while auth is being verified. `isAuthReady` is only triggered upon first render, and not triggered again when the user signs in or out.
-    ```tsx App.tsx
-    import { useBasic } from '@basictech/react'
-
-    function App() {
-      const { isAuthReady } = useBasic()
-
-      return (
-        <>
-          {isAuthReady ? <div>isSignedIn is ready to be used</div> : <div>Loading...</div>}
-        </>
-      )
-    }
-    ```
-</ParamField>
-
-### isSignedIn
-<ParamField query="isSignedIn" type="boolean">
-  Boolean that checks if a user is signed in after the `isAuthReady` boolean is true. 
-    ```tsx App.tsx
-    import { useBasic } from '@basictech/react'
-
-    function App() {
-      const { isAuthReady, isSignedIn } = useBasic()
-
-      return (
-        <>
-          {isAuthReady ? 
-          <div>{isSignedIn ? "User is signed in" : "User is signed out"}</div>} :
-          <div>Loading...</div>
-        </>
-      )
-    }
-    ```
-</ParamField>
+---
 
 # useQuery
-The `useQuery` hook is used to "subscribe" to data from the database, so that it updates when the data changes.
-It's a listener for data, and enables automatic sync between the local database, users' devices, and all other users that are connected to the same database.
+The `useQuery` hook is used to "subscribe" to data from the database, so that your component automatically re-renders when the data changes. It enables real-time sync between the local database, users' devices, and all other users connected to the same database.
+
+<Note>`useQuery` only works in sync mode. In remote mode, use regular async/await patterns instead.</Note>
 
 We use it primarily to wrap our `.get()` and `.getAll()` functions, and it takes a function as an argument.
 
@@ -174,3 +267,5 @@ function App() {
   )
 }
 ```
+
+<Info>The default value is an empty array `[]` while data is loading. This may change in a future version.</Info>

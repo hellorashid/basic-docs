@@ -1,22 +1,138 @@
 ---
 title: 'Components (BasicProvider)'
 ---
+# BasicProvider
+
 To enable the features of the Basic SDK, you need to wrap your app in a `<BasicProvider>` component.
 
-BasicProvider takes 3 props:
-- `project_id`: The project ID of your Basic project
-- `schema`: The schema of your Basic project
-- `debug`: An optional prop to enable additional debug logs to the console.
-
-```tsx App.tsx
+```tsx main.tsx
 import { BasicProvider } from '@basictech/react'
 import schema from './basic.config'
 
 function App() {
   return (
-    <BasicProvider project_id={schema.project_id} schema={schema} debug>
+    <BasicProvider schema={schema}>
       <YourApp />
     </BasicProvider>
   )
 }
+```
+
+## Props
+
+### schema
+<ParamField query="schema" type="object" required>
+  The Basic schema object containing your project configuration and table definitions. This should be imported from your `basic.config.ts` file.
+  
+  The `project_id` is extracted from `schema.project_id`.
+</ParamField>
+
+### project_id
+<ParamField query="project_id" type="string">
+  The project ID of your Basic project.
+  
+  <Warning>**Deprecated**: Project ID is now extracted from `schema.project_id`. This prop is kept for backward compatibility but can be omitted if your schema includes the project_id.</Warning>
+</ParamField>
+
+### debug
+<ParamField query="debug" type="boolean" default="false">
+  Enable debug mode for additional logging to the console. Useful during development.
+  
+  ```tsx
+  <BasicProvider schema={schema} debug>
+    <YourApp />
+  </BasicProvider>
+  ```
+</ParamField>
+
+### dbMode
+<ParamField query="dbMode" type="'sync' | 'remote'" default="'sync'">
+  Determines which database implementation is used:
+  
+  - **`'sync'`** (default): Uses IndexedDB + WebSocket for local-first sync. Works offline, provides real-time updates, and `useQuery` auto-refreshes.
+  - **`'remote'`**: Uses REST API calls directly to the server. No local storage, requires authentication for all operations, but has no IndexedDB dependencies.
+  
+  ```tsx
+  // Use remote mode for SSR-heavy apps or when you don't need offline support
+  <BasicProvider schema={schema} dbMode="remote">
+    <YourApp />
+  </BasicProvider>
+  ```
+  
+  See [Database Modes](/basic-nextjs/nextjs-modes) for detailed comparison.
+</ParamField>
+
+### storage
+<ParamField query="storage" type="BasicStorage">
+  Custom storage adapter for persisting auth tokens. By default, uses `LocalStorageAdapter` which stores data in `localStorage`.
+  
+  Implement the `BasicStorage` interface to use a custom storage solution (e.g., for React Native with AsyncStorage):
+  
+  ```typescript
+  interface BasicStorage {
+    get(key: string): Promise<string | null>
+    set(key: string, value: string): Promise<void>
+    remove(key: string): Promise<void>
+  }
+  ```
+  
+  ```tsx
+  import { BasicProvider, BasicStorage } from '@basictech/react'
+  import AsyncStorage from '@react-native-async-storage/async-storage'
+  
+  const asyncStorageAdapter: BasicStorage = {
+    get: (key) => AsyncStorage.getItem(key),
+    set: (key, value) => AsyncStorage.setItem(key, value),
+    remove: (key) => AsyncStorage.removeItem(key)
+  }
+  
+  <BasicProvider schema={schema} storage={asyncStorageAdapter}>
+    <YourApp />
+  </BasicProvider>
+  ```
+</ParamField>
+
+### auth
+<ParamField query="auth" type="AuthConfig">
+  Custom authentication configuration. Most apps don't need to set this.
+  
+  ```typescript
+  type AuthConfig = {
+    scopes?: string | string[]  // OAuth scopes (default: 'profile,email,app:admin')
+    server_url?: string         // Auth server URL (default: 'https://api.basic.tech')
+    ws_url?: string             // WebSocket URL (default: 'wss://pds.basic.id/ws')
+  }
+  ```
+  
+  ```tsx
+  <BasicProvider 
+    schema={schema} 
+    auth={{ 
+      scopes: ['profile', 'email'],
+      server_url: 'https://custom-api.example.com'
+    }}
+  >
+    <YourApp />
+  </BasicProvider>
+  ```
+</ParamField>
+
+---
+
+## Full Example
+
+```tsx main.tsx
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { BasicProvider } from '@basictech/react'
+import { schema } from './basic.config'
+import App from './App'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <BasicProvider schema={schema} debug>
+      <App />
+    </BasicProvider>
+  </StrictMode>
+)
 ```

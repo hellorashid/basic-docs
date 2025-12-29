@@ -7,8 +7,7 @@ In this guide, you will:
 2. Connect to a Basic project and customize the schema
 3. Add sign in and sign out functionality
 
-<Info> This library is only for client-side React. A NextJS library is coming soon! </Info>
-<Info> This is for existing React projects. If you're starting afresh, consider [creating a lofi app](/basic-react/create-lofi-app). </Info>
+<Info> This library is for client-side React. For Next.js applications, see the [@basictech/nextjs documentation](/basic-nextjs/basic-nextjs-sdk). </Info>
 
 
 # Installation
@@ -33,7 +32,7 @@ In this guide, you will:
 # Set up basic.config
 <Steps>
   <Step title="Create a basic.config.ts file">
-    Create a new file called `basic.config.ts` in the root of your project. You can either do this manually, or go through the [CLI](/get-started/cli) flow to have it automatically created for you.
+    Create a new file called `basic.config.ts` in the root of your project.
   </Step>
   <Step title="Customize the config">
     Add your project ID to the `basic.config.ts` file, and customize the schema in the file. You can copy your schema from the [Basic dashboard](/get-started/adminportal#create-your-schema) and paste it into the file.
@@ -71,8 +70,8 @@ In this guide, you will:
 
     createRoot(document.getElementById('root')).render(
       <StrictMode>
-        {/* Wrap your app in BasicProvider, including the project ID and schema */}
-        <BasicProvider project_id={schema.project_id} schema={schema}>
+        {/* Wrap your app in BasicProvider with your schema */}
+        <BasicProvider schema={schema}>
           <App />
         </BasicProvider>
       </StrictMode>,
@@ -81,22 +80,22 @@ In this guide, you will:
   </Step>
 
   <Step title="Add a login button to App.tsx">
-    Now navigate to  `src/App.tsx` and import `signin`, `isSignedIn`, and `user`. Vite comes with some template code, but you can replace the contents with the following:
+    Now navigate to  `src/App.tsx` and import `signIn`, `isSignedIn`, and `user`. Vite comes with some template code, but you can replace the contents with the following:
     ```tsx App.tsx
     import { useBasic } from '@basictech/react'
     import './App.css'
 
     function App() {
-      // Import signin to enable the user to sign in
+      // Import signIn to enable the user to sign in
       // Import isSignedIn to check if the user is signed in
       // Import user to get the user's information once they're signed in
-      const { signin, isSignedIn, user } = useBasic()
+      const { signIn, isSignedIn, user } = useBasic()
 
       return (
         <>
           {/* if the user isn't signed in, show the sign in button */}
           {!isSignedIn ? (
-            <button onClick={signin}>Sign In</button>
+            <button onClick={signIn}>Sign In</button>
           ) : (
             // once signed in, show their email
             <div>
@@ -115,25 +114,25 @@ In this guide, you will:
   </Step>
 
   <Step title="Add a logout button">
-    Use the isSignedIn hook to check if the user is logged in, and the signout function to sign out the user:
+    Use the isSignedIn hook to check if the user is logged in, and the signOut function to sign out the user:
     ```tsx App.tsx
     import { useBasic } from '@basictech/react'
     import './App.css'
 
     function App() {
-      // Add signout to the imports
-      const { signin, isSignedIn, user, signout } = useBasic()
+      // Add signOut to the imports
+      const { signIn, isSignedIn, user, signOut } = useBasic()
 
       return (
         <>
           {isSignedIn ? (
             <div>
-              <p>Signed in as: {user.email}</p>
+              <p>Signed in as: {user?.email}</p>
               {/* Add a button to sign out */}
-              <button onClick={signout}>Sign Out</button>
+              <button onClick={signOut}>Sign Out</button>
             </div>
           ) : (
-            <button onClick={signin}>Sign In</button>
+            <button onClick={signIn}>Sign In</button>
           )}
         </>
       )

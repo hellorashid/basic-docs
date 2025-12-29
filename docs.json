@@ -26,24 +26,54 @@
               {
                 "group": "1. create Basic account",
                 "pages": [
-                  "basic-react/react-adminportal",
-                  "basic-react/react-cli"
+                  "basic-react/react-adminportal"
                 ]
               },
               {
                 "group": "2. implement Basic",
                 "pages": [
-                  "basic-react/create-lofi-app",
                   "basic-react/basic-react-sdk"
                 ]
               },
               {
                 "group": "guides",
                 "pages": [
-                  "basic-react/to-do-app",
                   "basic-react/react-schema",
                   "basic-react/react-interop",
                   "basic-react/react-pwa"
+                ]
+              },
+              {
+                "group": "SDK reference",
+                "pages": [
+                  "sdk-reference/react-components",
+                  "sdk-reference/react-hooks",
+                  "sdk-reference/react-db"
+                ]
+              }
+            ]
+          },
+          {
+            "dropdown": "Next.js",
+            "icon": "code",
+            "groups": [
+              {
+                "group": "get started",
+                "pages": [
+                  "basic-nextjs/basic-nextjs-sdk"
+                ]
+              },
+              {
+                "group": "1. create Basic account",
+                "pages": [
+                  "basic-react/react-adminportal"
+                ]
+              },
+              {
+                "group": "guides",
+                "pages": [
+                  "basic-nextjs/nextjs-modes",
+                  "basic-nextjs/nextjs-middleware"
                 ]
               },
               {
@@ -63,8 +93,7 @@
               {
                 "group": "1. create Basic account",
                 "pages": [
-                  "basic-expo-rn/rn-adminportal",
-                  "basic-expo-rn/rn-cli"
+                  "basic-expo-rn/rn-adminportal"
                 ]
               },
               {
@@ -96,8 +125,7 @@
               {
                 "group": "1. create Basic account",
                 "pages": [
-                  "basic-restapi/api-adminportal",
-                  "basic-restapi/api-cli"
+                  "basic-restapi/api-adminportal"
                 ]
               },
               {
@@ -267,8 +295,8 @@
     ],
     "primary": {
       "type": "button",
-      "label": "Speak with us",
-      "href": "https://cal.com/abhicvk"
+      "label": "Join the Discord",
+      "href": "https://discord.gg/PuWD3zhsCk"
     }
   },
   "footer": {
