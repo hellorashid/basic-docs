@@ -91,7 +91,8 @@
             },
             "in": "query",
             "name": "client_id",
-            "required": true
+            "required": true,
+            "description": "Application/project identifier"
           },
           {
             "schema": {
@@ -100,7 +101,8 @@
             },
             "in": "query",
             "name": "redirect_uri",
-            "required": true
+            "required": true,
+            "description": "URI to redirect after authorization"
           },
           {
             "schema": {
@@ -111,7 +113,8 @@
             },
             "in": "query",
             "name": "response_type",
-            "required": true
+            "required": true,
+            "description": "Must be \"code\""
           },
           {
             "schema": {
@@ -119,7 +122,8 @@
             },
             "in": "query",
             "name": "scope",
-            "required": true
+            "required": true,
+            "description": "Space-separated list of scopes"
           },
           {
             "schema": {
@@ -127,7 +131,29 @@
             },
             "in": "query",
             "name": "state",
-            "required": true
+            "required": true,
+            "description": "CSRF protection token"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "code_challenge",
+            "required": false,
+            "description": "PKCE code challenge (SHA256 hash of verifier)"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "S256"
+              ]
+            },
+            "in": "query",
+            "name": "code_challenge_method",
+            "required": false,
+            "description": "PKCE challenge method (only S256 supported)"
           }
         ],
         "responses": {
@@ -166,18 +192,35 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "code"
-                ],
                 "properties": {
                   "code": {
                     "type": "string"
+                  },
+                  "grant_type": {
+                    "type": "string",
+                    "enum": [
+                      "authorization_code",
+                      "refresh_token"
+                    ]
+                  },
+                  "redirect_uri": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "client_id": {
+                    "type": "string"
+                  },
+                  "code_verifier": {
+                    "type": "string"
+                  },
+                  "refresh_token": {
+                    "type": "string"
                   }
-                }
+                },
+                "additionalProperties": true
               }
             }
-          },
-          "required": true
+          }
         },
         "security": [
           {
@@ -204,10 +247,13 @@
                     "expires_in": {
                       "type": "integer"
                     },
-                    "refresh": {
+                    "refresh_token": {
                       "type": "string"
                     },
-                    "refresh_token": {
+                    "scope": {
+                      "type": "string"
+                    },
+                    "id_token": {
                       "type": "string"
                     }
                   }
@@ -237,6 +283,21 @@
       }
     },
     "/auth/userInfo": {
+      "get": {
+        "summary": "Redirect to /userinfo (backwards compatibility)",
+        "tags": [
+          "auth"
+        ],
+        "description": "This endpoint is deprecated. Use /auth/userinfo instead.",
+        "deprecated": true,
+        "responses": {
+          "301": {
+            "description": "Permanent redirect to /userinfo"
+          }
+        }
+      }
+    },
+    "/auth/userinfo": {
       "get": {
         "summary": "Get user information from access token",
         "tags": [
@@ -294,6 +355,131 @@
         }
       }
     },
+    "/auth/.well-known/openid-configuration": {
+      "get": {
+        "summary": "OpenID Connect Discovery Document",
+        "tags": [
+          "auth"
+        ],
+        "description": "Returns OpenID Connect configuration metadata for this authorization server",
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "issuer": {
+                      "type": "string"
+                    },
+                    "authorization_endpoint": {
+                      "type": "string"
+                    },
+                    "token_endpoint": {
+                      "type": "string"
+                    },
+                    "userinfo_endpoint": {
+                      "type": "string"
+                    },
+                    "jwks_uri": {
+                      "type": "string"
+                    },
+                    "scopes_supported": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "response_types_supported": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "grant_types_supported": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "subject_types_supported": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "id_token_signing_alg_values_supported": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "token_endpoint_auth_methods_supported": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/.well-known/jwks.json": {
+      "get": {
+        "summary": "JSON Web Key Set",
+        "tags": [
+          "auth"
+        ],
+        "description": "Returns the public keys used to verify JWT signatures from PDS",
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "keys": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "kty": {
+                            "type": "string"
+                          },
+                          "use": {
+                            "type": "string"
+                          },
+                          "alg": {
+                            "type": "string"
+                          },
+                          "kid": {
+                            "type": "string"
+                          },
+                          "n": {
+                            "type": "string"
+                          },
+                          "e": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/project/": {
       "get": {
         "summary": "Get user projects",
@@ -337,6 +523,15 @@
                             "properties": {
                               "icon_url": {
                                 "type": "string"
+                              },
+                              "styles": {
+                                "type": "object",
+                                "properties": {
+                                  "background_url": {
+                                    "type": "string"
+                                  }
+                                },
+                                "additionalProperties": true
                               }
                             },
                             "additionalProperties": true
@@ -847,7 +1042,7 @@
         "tags": [
           "projects"
         ],
-        "description": "Retrieves public profile for a specific project",
+        "description": "Retrieves public profile for a specific project, including OAuth redirect URIs for client discovery",
         "parameters": [
           {
             "schema": {
@@ -888,6 +1083,18 @@
                           "properties": {},
                           "additionalProperties": true
                         },
+                        "auth": {
+                          "type": "object",
+                          "properties": {
+                            "redirect_uris": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "Authorized OAuth redirect URIs for this project"
+                            }
+                          }
+                        },
                         "created_at": {
                           "type": "string",
                           "format": "date-time"
@@ -922,7 +1129,7 @@
       "get": {
         "summary": "Get project schema",
         "tags": [
-          "projects"
+          "project-schema"
         ],
         "description": "Retrieves the schema configuration for a specific project. Can return either the latest version, a specific version, or all versions.",
         "parameters": [
@@ -1059,7 +1266,7 @@
       "post": {
         "summary": "Update project schema",
         "tags": [
-          "projects"
+          "project-schema"
         ],
         "description": "Updates the schema configuration for a specific project. Creates a new version of the schema.",
         "requestBody": {
@@ -1187,7 +1394,7 @@
       "patch": {
         "summary": "Merge and update project schema",
         "tags": [
-          "projects"
+          "project-schema"
         ],
         "description": "Merges the provided schema with the existing schema and creates a new version.",
         "requestBody": {
@@ -1329,13 +1536,148 @@
         }
       }
     },
-    "/project/{id}/upload-image": {
+    "/project/{id}/schema/generate": {
       "post": {
-        "summary": "Upload project image",
+        "summary": "Generate or update suggested schema using AI",
         "tags": [
-          "projects"
+          "project-schema"
         ],
-        "description": "Upload an image file for the project (e.g., project icon, logo). The image will be stored in R2 storage.",
+        "description": "Generate a new Basic schema or update an existing one from natural language prompt using OpenAI GPT-4. If a schema is provided, it will be updated based on the prompt and the version will be incremented by 1. Does not modify the actual project schema.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "prompt"
+                ],
+                "properties": {
+                  "prompt": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1000,
+                    "description": "Natural language prompt describing the app you want to create a schema for, or changes to make to an existing schema"
+                  },
+                  "project_id": {
+                    "type": "string",
+                    "description": "Project ID to use in the generated schema. If not provided, will use route parameter"
+                  },
+                  "schema": {
+                    "type": "object",
+                    "description": "Optional existing schema to update. If provided, the prompt will be used to modify this schema instead of generating a new one"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Project ID"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Schema generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Schema generated successfully",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "schema": {
+                      "type": "object",
+                      "description": "Generated Basic schema",
+                      "properties": {
+                        "project_id": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "number"
+                        },
+                        "tables": {
+                          "type": "object",
+                          "additionalProperties": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid prompt or missing required fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Bad Request - Invalid prompt or missing required fields",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error - OpenAI API error or schema parsing error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Internal server error - OpenAI API error or schema parsing error",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/project/{id}/upload/icon": {
+      "post": {
+        "summary": "Upload project icon",
+        "tags": [
+          "project-upload"
+        ],
+        "description": "Upload an icon image for the project. Max size: 2MB. Formats: PNG, JPEG, WebP.",
         "parameters": [
           {
             "schema": {
@@ -1357,11 +1699,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Image uploaded successfully",
+            "description": "Icon uploaded successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Image uploaded successfully",
+                  "description": "Icon uploaded successfully",
                   "type": "object",
                   "properties": {
                     "success": {
@@ -1370,7 +1712,7 @@
                     "icon_url": {
                       "type": "string",
                       "format": "uri",
-                      "description": "Public URL of the uploaded image"
+                      "description": "Public URL of the uploaded icon"
                     }
                   }
                 }
@@ -1387,6 +1729,101 @@
                   "properties": {
                     "error": {
                       "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Unauthorized - Invalid or missing authentication",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Project not found",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Internal server error",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete project icon",
+        "tags": [
+          "project-upload"
+        ],
+        "description": "Remove the project icon image.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Unique identifier of the project"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Icon deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Icon deleted successfully",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
                     },
                     "message": {
                       "type": "string"
@@ -1406,8 +1843,385 @@
                   "properties": {
                     "error": {
                       "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found or no icon to delete",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Project not found or no icon to delete",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Internal server error",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
                     },
                     "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/project/{id}/upload/background": {
+      "post": {
+        "summary": "Upload project background image",
+        "tags": [
+          "project-upload"
+        ],
+        "description": "Upload a background image for the project. Max size: 10MB. Formats: PNG, JPEG, WebP.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Unique identifier of the project"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Background image uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Background image uploaded successfully",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "background_url": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "Public URL of the uploaded background image"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid file or missing file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Bad Request - Invalid file or missing file",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Unauthorized - Invalid or missing authentication",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Project not found",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Internal server error",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete project background image",
+        "tags": [
+          "project-upload"
+        ],
+        "description": "Remove the project background image.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Unique identifier of the project"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Background image deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Background image deleted successfully",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Unauthorized - Invalid or missing authentication",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found or no background image to delete",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Project not found or no background image to delete",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Internal server error",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/project/{id}/upload": {
+      "get": {
+        "summary": "Get project images",
+        "tags": [
+          "project-upload"
+        ],
+        "description": "Retrieve all uploaded images for the project (icon and background).",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Unique identifier of the project"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project images retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Project images retrieved successfully",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "images": {
+                      "type": "object",
+                      "properties": {
+                        "icon": {
+                          "type": "object",
+                          "nullable": true,
+                          "properties": {
+                            "icon_url": {
+                              "type": "string",
+                              "format": "uri"
+                            },
+                            "size": {
+                              "type": "number",
+                              "description": "File size in bytes"
+                            },
+                            "contentType": {
+                              "type": "string",
+                              "description": "MIME type of the image"
+                            },
+                            "lastModified": {
+                              "type": "string",
+                              "format": "date-time",
+                              "description": "Last modified timestamp"
+                            }
+                          }
+                        },
+                        "background": {
+                          "type": "object",
+                          "nullable": true,
+                          "properties": {
+                            "background_url": {
+                              "type": "string",
+                              "format": "uri"
+                            },
+                            "size": {
+                              "type": "number",
+                              "description": "File size in bytes"
+                            },
+                            "contentType": {
+                              "type": "string",
+                              "description": "MIME type of the image"
+                            },
+                            "lastModified": {
+                              "type": "string",
+                              "format": "date-time",
+                              "description": "Last modified timestamp"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Unauthorized - Invalid or missing authentication",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Project not found",
+                  "type": "object",
+                  "properties": {
+                    "error": {
                       "type": "string"
                     }
                   }
@@ -2347,13 +3161,13 @@
         }
       }
     },
-    "/project/{id}/user/": {
+    "/project/{id}/settings": {
       "get": {
-        "summary": "Get project users",
+        "summary": "Get project settings",
         "tags": [
-          "project-users"
+          "projects"
         ],
-        "description": "Retrieves all users associated with the project, including their metadata and profiles",
+        "description": "Retrieves functional settings for a project (auth, webhooks, etc.)",
         "parameters": [
           {
             "schema": {
@@ -2375,72 +3189,31 @@
         ],
         "responses": {
           "200": {
-            "description": "List of project users",
+            "description": "Project settings retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "List of project users",
+                  "description": "Project settings retrieved successfully",
                   "type": "object",
                   "properties": {
                     "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string",
-                            "description": "Unique identifier of the user account"
-                          },
-                          "account_id": {
-                            "type": "string",
-                            "description": "Unique identifier of the user account - same as ID - temporary"
-                          },
-                          "meta": {
-                            "type": "object",
-                            "description": "Additional metadata about the user",
-                            "properties": {},
-                            "additionalProperties": true
-                          },
-                          "profile": {
-                            "type": "object",
-                            "description": "User profile information",
-                            "properties": {},
-                            "additionalProperties": true
-                          },
-                          "created_at": {
-                            "type": "string",
-                            "format": "date-time",
-                            "description": "When the user was added to the project"
+                      "type": "object",
+                      "properties": {
+                        "auth": {
+                          "type": "object",
+                          "properties": {
+                            "redirect_uris": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
                           }
                         }
-                      }
+                      },
+                      "additionalProperties": true
                     }
-                  },
-                  "required": [
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request - Invalid project ID",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Bad Request - Invalid project ID",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ]
+                  }
                 }
               }
             }
@@ -2459,20 +3232,17 @@
                     "message": {
                       "type": "string"
                     }
-                  },
-                  "required": [
-                    "error"
-                  ]
+                  }
                 }
               }
             }
           },
-          "500": {
-            "description": "Internal server error",
+          "403": {
+            "description": "Forbidden - Insufficient permissions",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Internal server error",
+                  "description": "Forbidden - Insufficient permissions",
                   "type": "object",
                   "properties": {
                     "error": {
@@ -2481,10 +3251,560 @@
                     "message": {
                       "type": "string"
                     }
-                  },
-                  "required": [
-                    "error"
-                  ]
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Project not found",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update project settings",
+        "tags": [
+          "projects"
+        ],
+        "description": "Updates functional settings for a project (auth, webhooks, etc.). Performs partial update with deep merge.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "auth": {
+                    "type": "object",
+                    "properties": {
+                      "redirect_uris": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        "description": "List of authorized OAuth redirect URIs (max 10)"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Unique identifier of the project"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project settings updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Project settings updated successfully",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "auth": {
+                          "type": "object",
+                          "properties": {
+                            "redirect_uris": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "additionalProperties": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Bad Request - Invalid settings",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string"
+                        },
+                        "validation_errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Unauthorized - Invalid or missing authentication",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Forbidden - Insufficient permissions",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Project not found",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete specific settings values",
+        "tags": [
+          "projects"
+        ],
+        "description": "Removes specific redirect URIs or other settings. Provide the values to remove in the request body.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "auth": {
+                    "type": "object",
+                    "properties": {
+                      "redirect_uris": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        "description": "List of redirect URIs to remove"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Unique identifier of the project"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Settings deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Settings deleted successfully",
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "auth": {
+                          "type": "object",
+                          "properties": {
+                            "redirect_uris": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "additionalProperties": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Bad Request - Invalid settings",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Unauthorized - Invalid or missing authentication",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Forbidden - Insufficient permissions",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Project not found",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/project/{id}/user/connect": {
+      "post": {
+        "summary": "Report a user connection to this project",
+        "tags": [
+          "project-users"
+        ],
+        "description": "Called by the client SDK after a successful OAuth flow with the user's PDS. Records the user in the project_user table.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "description": "The user's PDS-issued access token"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Project ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "user_did": {
+                      "type": "string"
+                    },
+                    "pds_url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/project/{id}/user/": {
+      "get": {
+        "summary": "Get project users",
+        "tags": [
+          "project-users"
+        ],
+        "description": "Retrieves all connected users for the project",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Project ID"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "user_did": {
+                            "type": "string"
+                          },
+                          "pds_url": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "meta": {
+                            "type": "object",
+                            "additionalProperties": true
+                          },
+                          "profile": {
+                            "type": "object",
+                            "additionalProperties": true
+                          },
+                          "last_seen_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/project/{id}/user/stats": {
+      "get": {
+        "summary": "Get project activity stats",
+        "tags": [
+          "project-users"
+        ],
+        "description": "Returns total users, DAU, WAU, MAU, and a daily active users series for the last 30 days",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Project ID"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer"
+                    },
+                    "dau": {
+                      "type": "integer"
+                    },
+                    "wau": {
+                      "type": "integer"
+                    },
+                    "mau": {
+                      "type": "integer"
+                    },
+                    "series": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "date": {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "active_users": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -2498,7 +3818,7 @@
         "tags": [
           "project-users"
         ],
-        "description": "Retrieves details for a specific user in the project",
+        "description": "Retrieves details for a specific user, fetching profile from their PDS via service token",
         "parameters": [
           {
             "schema": {
@@ -2516,7 +3836,7 @@
             "in": "path",
             "name": "user_id",
             "required": true,
-            "description": "User ID"
+            "description": "User DID"
           }
         ],
         "security": [
@@ -2529,97 +3849,17 @@
         ],
         "responses": {
           "200": {
-            "description": "User details retrieved successfully",
+            "description": "Default Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "User details retrieved successfully",
                   "type": "object",
                   "properties": {
                     "data": {
                       "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "name": {
-                          "type": "string"
-                        },
-                        "email": {
-                          "type": "string"
-                        },
-                        "role": {
-                          "type": "string"
-                        },
-                        "created_at": {
-                          "type": "string",
-                          "format": "date-time"
-                        }
-                      },
                       "additionalProperties": true
                     }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request - Invalid ID",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Bad Request - Invalid ID",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "User not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "User not found",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Internal server error",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": true
+                  }
                 }
               }
             }
@@ -2627,11 +3867,10 @@
         }
       },
       "patch": {
-        "summary": "Update user details",
+        "summary": "Update user metadata",
         "tags": [
           "project-users"
         ],
-        "description": "Updates the details of a specific user in the project",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2675,78 +3914,17 @@
         ],
         "responses": {
           "200": {
-            "description": "User details updated successfully",
+            "description": "Default Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "User details updated successfully",
                   "type": "object",
                   "properties": {
-                    "message": {
-                      "type": "string"
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": true
                     }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request - Invalid ID",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Bad Request - Invalid ID",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized - Invalid or missing authentication",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Unauthorized - Invalid or missing authentication",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Internal server error",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": true
+                  }
                 }
               }
             }
@@ -2758,7 +3936,6 @@
         "tags": [
           "project-users"
         ],
-        "description": "Removes a user from the project",
         "parameters": [
           {
             "schema": {
@@ -2787,72 +3964,14 @@
         ],
         "responses": {
           "200": {
-            "description": "User successfully removed from project",
+            "description": "Default Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "User successfully removed from project",
                   "type": "object",
                   "properties": {
                     "success": {
                       "type": "boolean"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request - Invalid ID",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Bad Request - Invalid ID",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized - Invalid or missing authentication",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Unauthorized - Invalid or missing authentication",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Internal server error",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
                     },
                     "message": {
                       "type": "string"
@@ -2867,7 +3986,7 @@
     },
     "/project/{id}/user/{user_id}/db/{table_id}": {
       "get": {
-        "summary": "Get user details",
+        "summary": "Get user database table",
         "tags": [
           "project-users"
         ],
@@ -2907,70 +4026,12 @@
         ],
         "responses": {
           "200": {
-            "description": "User details retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "User details retrieved successfully",
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "additionalProperties": true
-                      }
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request - Invalid ID",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Bad Request - Invalid ID",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Internal server error",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
+            "description": "Default Response"
           }
         }
       },
       "post": {
-        "summary": "Create a new item in the user's database",
+        "summary": "Create item in user database",
         "tags": [
           "project-users"
         ],
@@ -3025,69 +4086,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Item created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Item created successfully",
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "additionalProperties": true
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request - Invalid ID",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Bad Request - Invalid ID",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Internal server error",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
+            "description": "Default Response"
           }
         }
       }
     },
     "/project/{id}/user/{user_id}/db/{table_id}/{item_id}": {
       "get": {
-        "summary": "Get user details",
+        "summary": "Get item from user database",
         "tags": [
           "project-users"
         ],
@@ -3135,67 +4141,12 @@
         ],
         "responses": {
           "200": {
-            "description": "Item retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Item retrieved successfully",
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "additionalProperties": true
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request - Invalid ID",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Bad Request - Invalid ID",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Internal server error",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
+            "description": "Default Response"
           }
         }
       },
       "patch": {
-        "summary": "Update an item in the user's database",
+        "summary": "Update item in user database",
         "tags": [
           "project-users"
         ],
@@ -3258,175 +4209,12 @@
         ],
         "responses": {
           "200": {
-            "description": "Item updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Item updated successfully",
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "additionalProperties": true
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request - Invalid ID",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Bad Request - Invalid ID",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Internal server error",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete an item from the user's database",
-        "tags": [
-          "project-users"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "id",
-            "required": true
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "user_id",
-            "required": true
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "table_id",
-            "required": true
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "item_id",
-            "required": true
-          }
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          },
-          {
-            "apiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Item deleted successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Item deleted successfully",
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "additionalProperties": true
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request - Invalid ID",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Bad Request - Invalid ID",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Internal server error",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": true
-                }
-              }
-            }
+            "description": "Default Response"
           }
         }
       },
       "put": {
-        "summary": "Update an item in the user's database",
+        "summary": "Replace item in user database",
         "tags": [
           "project-users"
         ],
@@ -3475,6 +4263,214 @@
         "responses": {
           "200": {
             "description": "Default Response"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete item from user database",
+        "tags": [
+          "project-users"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "user_id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "table_id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "item_id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/projects/{hexId}/did.json": {
+      "get": {
+        "summary": "Get project DID document",
+        "tags": [
+          "federation"
+        ],
+        "description": "Public endpoint that serves a W3C DID document for a project. Used by PDS instances to resolve app identity and public keys.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "hexId",
+            "required": true,
+            "description": "Hex project ID (UUID with dashes stripped)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "DID document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "DID document",
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Project not found",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Internal server error",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{id}/client-metadata.json": {
+      "get": {
+        "summary": "Get client metadata document",
+        "tags": [
+          "federation"
+        ],
+        "description": "Public endpoint that serves an OAuth client metadata document for a project. Used by PDS instances to resolve app identity, schema, and redirect URIs during federation.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Project UUID or hex ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Client metadata document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Client metadata document",
+                  "type": "object",
+                  "properties": {
+                    "client_id": {
+                      "type": "string"
+                    },
+                    "client_name": {
+                      "type": "string"
+                    },
+                    "client_uri": {
+                      "type": "string"
+                    },
+                    "logo_uri": {
+                      "type": "string"
+                    },
+                    "redirect_uris": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "grant_types": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "response_types": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "application_type": {
+                      "type": "string"
+                    },
+                    "schema": {
+                      "type": "object",
+                      "additionalProperties": true,
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Project not found",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -3883,6 +4879,145 @@
               "application/json": {
                 "schema": {
                   "description": "Forbidden",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Team not found",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Internal server error",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a team",
+        "tags": [
+          "teams"
+        ],
+        "description": "Deletes a team and all its associated data (members, invites). Cannot delete teams with active projects.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "team_id",
+            "required": true,
+            "description": "The ID of the team to delete"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Team deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Team deleted successfully",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Team has active projects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Bad Request - Team has active projects",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Unauthorized - Invalid or missing authentication",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Forbidden - Insufficient permissions",
                   "type": "object",
                   "properties": {
                     "error": {
@@ -5025,854 +6160,16 @@
           }
         }
       }
-    },
-    "/account/apps/{project_id}": {
-      "get": {
-        "summary": "Get connected application details",
-        "tags": [
-          "account"
-        ],
-        "description": "Retrieves details of a specific connected application",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "project_id",
-            "required": true,
-            "description": "project id"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Connected application details",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Connected application details",
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "name": {
-                          "type": "string"
-                        },
-                        "created_at": {
-                          "type": "string",
-                          "format": "date-time"
-                        }
-                      },
-                      "additionalProperties": true
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Unauthorized",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Application not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Application not found",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/account/{project_id}/db/{table}": {
-      "get": {
-        "summary": "Get database table item",
-        "tags": [
-          "account"
-        ],
-        "description": "Retrieves an item from a database table. Supports filtering, ordering, pagination, and field selection.\n\n- **Ordering**: Use `?order=field.direction` (e.g., `?order=created_at.desc,name.asc`)\n- **Pagination**: Use `?limit=10&offset=20`\n- **Filtering**: Use operators like `?name=eq.John`, `?price=gt.10`, etc.\n- **Field Selection**: Use `?select=id,name,email` to return only specific fields\n",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "id",
-            "required": false,
-            "description": "item id"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "order",
-            "required": false,
-            "description": "order by field and direction (asc or desc) (e.g. ?order=created_at.desc,name.asc)"
-          },
-          {
-            "schema": {
-              "type": "integer"
-            },
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "description": "maximum number of results to return"
-          },
-          {
-            "schema": {
-              "type": "integer"
-            },
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "description": "number of results to skip"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "select",
-            "required": false,
-            "description": "comma-separated list of fields to return (e.g. ?select=name,email,created_at)"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "project_id",
-            "required": true,
-            "description": "project id"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "table",
-            "required": true,
-            "description": "table name"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Database item",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Database item",
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "additionalProperties": true
-                      }
-                    },
-                    "pagination": {
-                      "type": "object",
-                      "properties": {
-                        "limit": {
-                          "type": "integer"
-                        },
-                        "offset": {
-                          "type": "integer"
-                        },
-                        "count": {
-                          "type": "integer"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Unauthorized",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Item not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Item not found",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "summary": "Create database table item",
-        "tags": [
-          "account"
-        ],
-        "description": "Creates a new item in a database table",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": true,
-                "properties": {
-                  "value": {
-                    "type": "object",
-                    "additionalProperties": true
-                  }
-                },
-                "required": [
-                  "value"
-                ]
-              }
-            }
-          },
-          "required": true
-        },
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "project_id",
-            "required": true,
-            "description": "project id"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "table",
-            "required": true,
-            "description": "table name"
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Item created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Item created successfully",
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "additionalProperties": true
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid data schema",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Invalid data schema",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "valid": {
-                      "type": "boolean"
-                    },
-                    "errors": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "path": {
-                            "type": "string"
-                          },
-                          "message": {
-                            "type": "string"
-                          }
-                        },
-                        "additionalProperties": true
-                      }
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Unauthorized",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Server error",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/account/{project_id}/db/{table}/{item_id}": {
-      "get": {
-        "summary": "Get database table item by ID",
-        "tags": [
-          "account"
-        ],
-        "description": "Retrieves a specific item by ID from a database table. Supports field selection with `?select=field1,field2,field3`.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "select",
-            "required": false,
-            "description": "comma-separated list of fields to return (e.g. ?select=name,email,created_at)"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "project_id",
-            "required": true,
-            "description": "project id"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "table",
-            "required": true,
-            "description": "table name"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "description": "item id"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Database item",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Database item",
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "additionalProperties": true
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Unauthorized",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Item not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Item not found",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "patch": {
-        "summary": "Update database table item",
-        "tags": [
-          "account"
-        ],
-        "description": "Updates an existing item in a database table",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": true,
-                "properties": {
-                  "value": {
-                    "type": "object",
-                    "additionalProperties": true
-                  }
-                },
-                "required": [
-                  "value"
-                ]
-              }
-            }
-          },
-          "required": true
-        },
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "project_id",
-            "required": true,
-            "description": "project id"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "table",
-            "required": true,
-            "description": "table name"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "description": "item id"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Item updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Item updated successfully",
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "additionalProperties": true
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid data schema",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Invalid data schema",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "valid": {
-                      "type": "boolean"
-                    },
-                    "errors": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Unauthorized",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Server error",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "summary": "Replace database table item",
-        "tags": [
-          "account"
-        ],
-        "description": "Replaces an existing item in a database table",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": true,
-                "properties": {
-                  "value": {
-                    "type": "object",
-                    "additionalProperties": true
-                  }
-                },
-                "required": [
-                  "value"
-                ]
-              }
-            }
-          },
-          "required": true
-        },
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "project_id",
-            "required": true,
-            "description": "project id"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "table",
-            "required": true,
-            "description": "table name"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "description": "item id"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Item replaced successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Item replaced successfully",
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "additionalProperties": true
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid data schema",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Invalid data schema",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "valid": {
-                      "type": "boolean"
-                    },
-                    "errors": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Unauthorized",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Server error",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete database table item",
-        "tags": [
-          "account"
-        ],
-        "description": "Deletes an item from a database table",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "project_id",
-            "required": true,
-            "description": "project id"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "table",
-            "required": true,
-            "description": "table name"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "description": "item id"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Item deleted successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Item deleted successfully",
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "additionalProperties": true
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Unauthorized",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Item not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "description": "Item not found",
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
     }
   },
   "servers": [
     {
       "url": "https://api.basic.tech",
       "description": "Production server"
+    },
+    {
+      "url": "https://beta.api.basic.tech",
+      "description": "Staging server"
     },
     {
       "url": "http://localhost:3003",
@@ -5897,16 +6194,20 @@
       "description": "Project user management end-points"
     },
     {
+      "name": "project-schema",
+      "description": "Project schema management end-points"
+    },
+    {
+      "name": "project-upload",
+      "description": "Project image upload end-points"
+    },
+    {
       "name": "teams",
       "description": "Project user management end-points"
     },
     {
       "name": "utils",
       "description": "Utility end-points - very useful, trust me"
-    },
-    {
-      "name": "account",
-      "description": "Account and database management end-points"
     }
   ],
   "externalDocs": {

@@ -40,7 +40,7 @@ Here are the required parameters you need to set on the "Sign in with Basic" but
 - `state`
 ### client_id
 <ParamField query="client_id" type="string" required>
-    This is your application's client ID, which you can find in the Basic dashboard.
+    Your application's client ID from [admin.basic.tech](https://admin.basic.tech) (project settings).
 </ParamField>
 
 ### redirect_uri
@@ -62,3 +62,11 @@ Here are the required parameters you need to set on the "Sign in with Basic" but
 <ParamField query="state" type="string" required>
     The state parameter is used to prevent CSRF attacks. It is a random string that is used to verify that the callback request is legitimate. It is recommended that you use a secure random string generator to generate a state parameter, and that you verify that the state parameter that you receive in the callback URL is the same as the one you sent.
 </ParamField>
+
+### PKCE (optional, recommended)
+
+<ParamField query="code_challenge" type="string">
+  SHA-256 hash of your `code_verifier`, base64url-encoded. Send together with `code_challenge_method=S256` on `/auth/authorize`, then send the original `code_verifier` in the body of `POST /auth/token` when exchanging the code.
+</ParamField>
+
+The [REST quickstart](/basic-restapi/basic-api) and the [redirect-to-sign-in API reference](/api-reference/auth/redirect-to-sign-in) describe the full parameter set.

@@ -30,44 +30,43 @@ description: "Build personalized apps and agents with Basic."
 </div>
 </Frame>
 
-## features and benefits
-Basic is a purpose-built backend for personalization of apps and agents. 
-We have a federated model instead of a traditional database, where we spin up a dedicated "datastore per user" in the cloud so each of your users is solely given their own db. 
+## Features and benefits
 
-Read/write data directly to user data stores with simple SDKs/APIs.
-Securely access real-time user-context across existing apps in your users' data stores for personalizing your apps and LLMs.
+Basic is a purpose-built backend for personalization of apps and agents. Instead of one shared database for all users, Basic uses a **federated model**: a dedicated datastore per user in the cloud. You read and write through SDKs or APIs with built-in auth and permissioning.
 
-Basic replaces your primary datastore for the following benefits:
-- **Zero infrastructure**: no database to provision — CRUD via SDKs/APIs
-- **Share user-context across apps**: real-time read/writes across schemas
-- **Built in auth & permissioning**: "multi-tenant" auth with RLS by default
-- **Federated, per-user data stores**: portable across apps for deep personalization
-- **Instant (SDKs only)**: apps with 0 latency + cloud
+- **Zero infrastructure**: No database to provision for that layer—CRUD via SDKs and HTTP.
+- **Shared user context across apps**: When users connect multiple apps to Basic, you can work with the same permissioned datastore model (see [Why Basic?](/readings/why-basic)).
+- **Built-in auth and permissioning**: OAuth flows and scoped tokens, with row-level expectations documented in [Managing permissions](/readings/permissioning).
+- **Federated, per-user datastores**: Portable, user-centric data for deep personalization.
+- **Responsive clients**: Local-first sync where you use the web/mobile SDKs; near-instant UI with offline-friendly patterns.
 
-*Features coming soon: multiplayer, federated learning*
+*On the roadmap: broader real-time collaboration patterns, federated learning, and more.*
 
-## use cases
-- **AI apps & agents**: Simple way to store and access user context from previous interactions.
-- **AI app/agent builders**: Scale auth and backends for the thousands of apps and agents your users are building.
-- **AI wearables**: Store sensitive user information securely and continue improving your models with leaking their data.
-- **Embedded AI**: Personalize LLMs for your users with their existing rather than providing a generic, bland experience.
-- **Personal/productivity software**: Fit into existing user workflows with bi-directional sync of their existing data. Zero latency and offline support cuts through the noise of your competition. 
+## Use cases
 
-## getting started
-First, [set up your Basic account](/get-started/adminportal). You've the option to [set up the Basic CLI](/get-started/cli) as well.
+- **AI apps and agents**: Store and retrieve user context across sessions safely.
+- **AI app builders**: Hand thousands of end-user apps a consistent auth + data layer.
+- **AI wearables and sensitive UX**: Keep user data scoped to their store without leaking it across tenants.
+- **Embedded AI**: Personalize models using permissioned user context, not only generic defaults.
+- **Personal and productivity software**: Sync and offline-friendly UX for competitive polish.
 
-Next, choose the right version of the docs based on your technology stack in the top left hand dropdown. These are the ones we support so far:
+## Getting started
 
-| Framework / API      | Support   |
-|----------------------|-----------|
-| React                | ✅        |
-| React Native         | ✅        |
-| REST APIs            | ✅        |
-| Management APIs      | ✅        |
+First, [set up your Basic account and project](/get-started/adminportal). Optionally [install the Basic CLI](/get-started/cli).
 
-*Roadmap for support: Python, iOS, Android*
+Then pick docs for your stack from the **Documentation** dropdown:
 
-**Follow one of these implementation guides based on your stack:**
+| Framework / API   | Support |
+|-------------------|:-------:|
+| React             | Yes     |
+| Next.js           | Yes     |
+| Expo / React Native | Yes   |
+| REST              | Yes     |
+| Management APIs   | Yes     |
+
+*More client runtimes are on the [roadmap](/readings/others/roadmap).*
+
+**Implementation guides:**
 
   <CardGroup cols={2}>
     <Card
@@ -75,34 +74,32 @@ Next, choose the right version of the docs based on your technology stack in the
       icon="code"
       href="/basic-react/basic-react-sdk"
     >
-      integrate Basic into your React project
+      Integrate Basic into your React project
     </Card>
     <Card
       title="Next.js"
       icon="code"
       href="/basic-nextjs/basic-nextjs-sdk"
     >
-      integrate Basic into your Next.js project
+      Integrate Basic into your Next.js project
     </Card>
     <Card
       title="Expo / React Native"
       icon="code"
       href="/basic-expo-rn/basic-rn-sdk"
     >
-      integrate Basic into your Expo / React Native project
+      Integrate Basic into your Expo / React Native project
     </Card>
     <Card
       title="REST APIs"
       icon="cloud"
       href="/basic-restapi/basic-api"
     >
-      integrate Basic into your existing project
+      Integrate Basic over HTTP
     </Card>
   </CardGroup>
 
-  
-
-## side quests
+## Side quests
 
 <CardGroup cols={3}>
 <Card
@@ -110,20 +107,20 @@ Next, choose the right version of the docs based on your technology stack in the
     icon="book"
     href="/readings/personal-data-stores"
   >
-    Read about the concepts behind Basic
+    Core concepts behind user-owned data
   </Card>
   <Card
     title="Book a call"
     icon="phone"
     href="https://cal.com/abhicvk"
   >
-    Have feedback or need help? Book a call with us
+    Feedback or help getting started
   </Card>
   <Card
     title="Follow us on Twitter"
     icon="twitter"
     href="https://twitter.com/basic_db"
   >
-    Stay up to date on new developments
+    Product updates
   </Card>
 </CardGroup>

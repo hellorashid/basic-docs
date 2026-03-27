@@ -1,15 +1,28 @@
 # Basic Documentation
 
-Welcome to the official documentation for Basic, a local-first database designed for user-owned data
+Welcome to the official documentation for Basic, a local-first database designed for user-owned data.
+
+## Maintaining `openapi.json`
+
+The file [`openapi.json`](./openapi.json) should stay in sync with the deployed Admin API. Regenerate it from the live spec (same host as the docs playground):
+
+```bash
+curl -sS 'https://api.basic.tech/docs/json' -o openapi.json
+# optional: pretty-print
+python3 -c "import json; p='openapi.json'; d=json.load(open(p)); json.dump(d, open(p,'w'), indent=2)"
+```
+
+When developing against a local admin server, substitute your local base URL and `/docs/json`.
 
 ## 🚀 Quick Start
 
 To get started with Basic:
 
-1. [Sign up for Basic](https://docs.basic.tech/get-started/sign-up-for-basic)
-2. Implement Basic in your project:
-   - [Using React](https://docs.basic.tech/get-started/implement-basic/using-react)
-   - [Using API](https://docs.basic.tech/get-started/implement-basic/using-api)
+1. [What is Basic?](https://docs.basic.tech/get-started/welcome) and [Admin & project setup](https://docs.basic.tech/get-started/adminportal)
+2. Pick an integration guide:
+   - [React](https://docs.basic.tech/basic-react/basic-react-sdk)
+   - [Next.js](https://docs.basic.tech/basic-nextjs/basic-nextjs-sdk)
+   - [REST API](https://docs.basic.tech/basic-restapi/basic-api)
 
 ## 🌟 Key Features
 
@@ -19,22 +32,23 @@ To get started with Basic:
 
 ## 📚 Core Concepts
 
-- [User-owned Data Stores](https://docs.basic.tech/info/PDS)
-- [Local-first Sync](https://docs.basic.tech/info/local-first-sync)
-- [Basic Auth](https://docs.basic.tech/info/auth-basic)
-- [Managing Permissions](https://docs.basic.tech/info/permissioning)
+- [Personal data stores](https://docs.basic.tech/readings/personal-data-stores)
+- [Local-first sync](https://docs.basic.tech/readings/local-first-sync)
+- [Basic Auth (OAuth)](https://docs.basic.tech/readings/auth-basic)
+- [Managing permissions](https://docs.basic.tech/readings/permissioning)
 
-## 🛠 API Reference
+## 🛠 API reference
 
-- [Auth](https://docs.basic.tech/api-reference/auth/authorize)
+- [Auth APIs](https://docs.basic.tech/api-reference/auth/redirect-to-sign-in)
+- [Management APIs](https://docs.basic.tech/api-reference/projects/create-a-new-project) (projects, users, teams, keys)
 
-## 💻 SDK Reference
+## 💻 SDK reference
 
-- [React SDK](https://docs.basic.tech/sdk-reference/react-sdk)
+- [React hooks & provider](https://docs.basic.tech/sdk-reference/react-hooks)
 
 ## 🗺 Roadmap
 
-Check out our [roadmap](https://docs.basic.tech/others/roadmap) to see what's coming next.
+See the [roadmap](https://docs.basic.tech/readings/others/roadmap).
 
 ## 🤝 Connect with Us
 

@@ -94,13 +94,15 @@ function App() {
 
 ### auth
 <ParamField query="auth" type="AuthConfig">
-  Custom authentication configuration. Most apps don't need to set this.
+  Custom authentication configuration. Most apps omit this and use defaults.
   
   ```typescript
   type AuthConfig = {
-    scopes?: string | string[]  // OAuth scopes (default: 'profile,email,app:admin')
-    server_url?: string         // Auth server URL (default: 'https://api.basic.tech')
-    ws_url?: string             // WebSocket URL (default: 'wss://pds.basic.id/ws')
+    scopes?: string | string[]   // default: 'profile,email,app:admin'
+    pds_url?: string             // PDS / auth host (default: 'https://pds.basic.id')
+    admin_url?: string          // Admin API for telemetry (default: 'https://api.basic.tech')
+    ws_url?: string             // Sync WebSocket (default: 'wss://pds.basic.id/ws')
+    /** @deprecated */ server_url?: string  // use pds_url instead
   }
   ```
   
@@ -109,12 +111,17 @@ function App() {
     schema={schema} 
     auth={{ 
       scopes: ['profile', 'email'],
-      server_url: 'https://custom-api.example.com'
+      pds_url: 'https://pds.basic.id'
     }}
   >
     <YourApp />
   </BasicProvider>
   ```
+</ParamField>
+
+### devToolbar
+<ParamField query="devToolbar" type="boolean" default="false">
+  When `true`, shows the lazy-loaded **Basic dev toolbar** (schema status, useful shortcuts) in environments where it is allowed (for example localhost, `NODE_ENV=development`, or when `debug` is enabled on the provider). Export `BasicDevToolbar` from `@basictech/react` if you want to place it yourself.
 </ParamField>
 
 ---

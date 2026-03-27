@@ -44,13 +44,15 @@ import MainApp from './MainApp';
 
 export default function App() {
   return (
-    <BasicProvider schema={schema} project_id={schema.project_id}>
+    <BasicProvider schema={schema}>
       <MainApp />
     </BasicProvider>
   );
 }
 ```
-**Note:** Ensure your app's `app.json` sets the correct URI scheme under `expo.scheme` for authentication callbacks.
+<Note>`project_id` is inferred from `schema.project_id` on `BasicProvider`; passing `project_id` separately is deprecated.</Note>
+
+**Note:** Set the correct URI scheme under `expo.scheme` in `app.json` so OAuth redirects return to your app.
 
 ## Authentication & State Management
 Use the `useBasic` hook from `@basictech/expo` inside your components to access authentication state and database client:

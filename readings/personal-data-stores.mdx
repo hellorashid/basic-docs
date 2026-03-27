@@ -59,12 +59,12 @@ Applications will request permission to read / write data to those buckets, but 
 
 # Benefits of PDS'
 
-### Consolidation, and interoperability
+### Consolidation and a single user datastore
 
 <img
   className="block"
   src="/images/DataFragmentation.svg"
-  alt="Consolidation and Interoperability"
+  alt="Consolidation and a single user datastore"
 />
 
 In traditional centralized data ownership models, user data is spread across multiple databases owned by different apps and websites (notice how User A's data is spread across Apps A, B, and C). 
@@ -74,8 +74,7 @@ With PDS', user data remains in a single space that can be queried (all the data
 If you were to build a word processor tool A (similar to Google Docs) using Basic, all the words that your users type up on the document are stored in their data store. 
 Any words they may type up in a different word processor tool B that also uses Basic for data would also be stored in the same data store.
 
-Developers will read and write data to your data store for all the data that pertains to a user. 
-A user could imagine alternating between word processor tool A and B for the same document, and the words they type would seamlessly appear in either apps interoperably.
+Apps read and write only the collections and fields users authorize. Multiple apps can connect to the same user’s store when the user allows it, which helps **reuse context** (for example profile or notes) without each app holding a separate siloed copy—exact capabilities depend on schema and permissions.
 
 ### Control, ownership, and permanence
 
@@ -134,4 +133,5 @@ And they can always in the future choose to access their data since it’s alway
 </Accordion>
 </AccordionGroup>
 ---
-*Basic is a protocol for creating open-source, PDS'. We make full-stack tooling (Auth, DB, Sync, etc.) to help developers build more interoperable applications without having to worry about privacy for their users.*
+
+Basic provides open-source-oriented tooling (auth, datastore APIs, sync clients) so you can build applications where **user data stays user-centric** and permissioned, without standing up all of that infrastructure yourself.

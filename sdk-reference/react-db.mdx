@@ -18,7 +18,9 @@ They are used in conjunction with the `db` property from the `useBasic()` hook, 
     Fetch all items from the table. Returns an empty array if no items exist.
 </ParamField>
 
-<Info>Filtering with `.getAll()` is not yet supported server-side. Use `.filter()` for client-side filtering, or conduct filtering in your client logic. Joins are not supported yet—manually fetch from separate tables and join them in your client logic.</Info>
+<Info>
+  In the **React / Next.js client SDK** (sync or remote mode), `.getAll()` loads items for that collection and `.filter()` applies your predicate **on the client** after fetch. For **server-side query parameters** on HTTP, use the [REST API filtering guide](/basic-restapi/api-filtering) against the PDS endpoints instead.
+</Info>
 
 ### .add()
 <ParamField query=".add(data: Omit<T, 'id'>)" type="Promise<T>">

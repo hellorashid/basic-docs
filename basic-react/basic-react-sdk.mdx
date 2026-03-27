@@ -35,9 +35,9 @@ In this guide, you will:
     Create a new file called `basic.config.ts` in the root of your project.
   </Step>
   <Step title="Customize the config">
-    Add your project ID to the `basic.config.ts` file, and customize the schema in the file. You can copy your schema from the [Basic dashboard](/get-started/adminportal#create-your-schema) and paste it into the file.
+    Add your project ID to the `basic.config.ts` file, and customize the schema in the file. You can copy your schema from the [admin console](https://admin.basic.tech) (see [Admin & project setup](/get-started/adminportal#create-your-schema)) and paste it into the file.
 
-    Any changes you make to the schema in basic.config need to eventually be deployed to the Basic dashboard. Local changes would be for development purposes only.
+    Any changes you make to the schema in `basic.config` should eventually match the schema published for your project in the admin console. Local edits are for development until you deploy or sync the canonical schema.
     ```ts basic.config.ts
     export const schema = {
       project_id: 'YOUR_PROJECT_ID',
@@ -62,7 +62,7 @@ In this guide, you will:
 <Steps>
   <Step title="Add the BasicProvider to main.tsx">
     Navigate to `src/main.tsx`, add the BasicProvider to imports, and wrap your app in it.
-    <Info>Replace YOUR_PROJECT_ID with your Project ID from the Basic dashboard. To create one, follow the instructions for [signing up](/get-started/adminportal).</Info>
+    <Info>Replace `YOUR_PROJECT_ID` with your project ID from [admin.basic.tech](https://admin.basic.tech). New to Basic? Follow [Admin & project setup](/get-started/adminportal).</Info>
     ```tsx main.tsx
     // add the BasicProvider to your existing imports
     import { BasicProvider } from '@basictech/react'

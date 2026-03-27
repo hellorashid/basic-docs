@@ -6,7 +6,7 @@ description: 'Integrate Basic into your project using REST APIs'
     First, check if there's an existing Basic SDK for your technology stack and use it instead for a better dev experience!
 </Info>
 # Summary
-There's two main steps to integrating Basic into your app. You'll need to implement Basic Auth, and then you'll be able to access the database APIs.
+There are two main steps to integrating Basic into your app: implement Basic Auth, then call the database APIs with the user's access token.
 
 <CardGroup>
 <Card title="Auth APIs guide" href="/basic-restapi/basic-api#basic-auth-apis-guide">
@@ -37,7 +37,10 @@ In this guide, you will:
         
         Redirect URL template: `https://api.basic.tech/auth/authorize?response_type=code&redirect_uri=YOUR_REDIRECT_URI&scope=profile&state=YOUR_STATE&client_id=YOUR_CLIENT_ID`
         <Note>
-            Make sure to replace `YOUR_CLIENT_ID`, `YOUR_REDIRECT_URI`, `YOUR_STATE` with your own values
+            Replace `YOUR_CLIENT_ID`, `YOUR_REDIRECT_URI`, and `YOUR_STATE` with your own values. `scope` must be a space-separated list (for example `profile` alone, or `profile` plus datastore scopes your app needs). The live contract matches the [OpenAPI spec](/api-reference/auth/redirect-to-sign-in) (`GET /auth/authorize`).
+        </Note>
+        <Note>
+            **PKCE (recommended):** You may include `code_challenge` and `code_challenge_method=S256` on the authorize request and the matching `code_verifier` when exchanging the code at `/auth/token`. See [Basic Auth](/readings/auth-basic) for the full OAuth flow.
         </Note>
         <CodeGroup>
             ```bash cURL

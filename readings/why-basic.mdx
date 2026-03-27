@@ -2,77 +2,64 @@
 title: Why Basic?
 ---
 <img src="/images/hero_intro_hyper.png" alt="hero" />
-Basic is a new kind of database, focusing on privacy, user ownership, and local-first principles.
 
-It creates a Personal Data Store for every end user, allowing applications to request access for reading and writing. Think of it as an open-source, web-wide version of iCloud.
+Basic is a backend for **user-owned data**: each end user gets a dedicated datastore in the cloud, with OAuth sign-in, sync, and clear permission boundaries. Apps read and write that data through SDKs or HTTP APIs instead of running a separate database for every customer.
+
+It fits products that need **personalization, cross-app context, or agents**—anywhere user-specific state should stay portable and under the user’s control.
 
 ## Problem
 
-Current data storage methods have several issues:
+Typical app backends centralize user data with the vendor:
 
-- **Fragmentation**: User data is scattered across numerous apps and platforms
-- **Vendor lock-in**: Walled gardens limit user choice and data portability
-- **Privacy concerns**: Data breaches and misuse are increasingly common
-- **Dependency**: User data relies on third parties, risking loss, censorship, or shutdown
+- **Fragmentation**: The same person’s data is copied and isolated per app.
+- **Lock-in**: Hard to move data or reuse it across tools the user already uses.
+- **Privacy and risk**: One breach or policy change affects many users at once.
+- **Operational load**: You scale storage, backups, and compliance for all users’ rows in one place.
 
-## Objectives
+## What we optimize for
 
-Basic aims to build a more private, collaborative, and user-centric web. Our goals include:
+1. **User-owned stores**: Data is tied to the user; apps request access instead of owning the canonical copy.
+2. **Portability**: Users can bring the same datastore to multiple apps that integrate Basic, within the permissions they grant.
+3. **Built-in auth and scopes**: Sign-in and tokens reflect what each app is allowed to do.
+4. **Developer speed**: Schema-as-code, client SDKs with local-first sync where supported, and REST for any stack.
 
-1. **User-owned data**: Users control access and sharing of their data
-2. **Interoperable data**: Information flows freely across applications, not siloed in walled gardens
-3. **Privacy**: Users can use apps without exposing their data to developers
-4. **Open-source protocol**: Fostering a healthy, transparent ecosystem
-
-Additionally, our database should be:
-
-- **Easy to use**: Quick to design, deploy, and integrate into any stack
-- **Relational**: Supporting developers' preference for relational and typed models
-- **Serverless and scalable**: Automatically adjusting to demand, scaling up or down as needed
+We also care that the platform is **easy to adopt** (quick project setup, familiar document-style collections), **typed at the schema layer**, and **elastic** as your user base grows.
 
 ---
 
-# Solution
+## How Basic differs
 
-Basic is a local-first, serverless, relational database designed for user-owned data.
-
-## Traditional vs. Basic Approach
-
-Traditionally, applications create and host databases, storing all user data centrally:
+Traditionally, your app hosts one database and all user rows live there:
 
 <Frame><img src="/images/diagram_1.png" alt="traditional diagram" /></Frame>
 
-Basic offers an alternative where data is controlled by the user, and applications request access:
+With Basic, each user has their own datastore; your app uses APIs and SDKs against that federated model:
 
 <Frame><img src="/images/diagram_2.png" alt="basic diagram" /></Frame>
 
-## Benefits of User-Owned, Local-First Data
+### For users
 
-**For Users:**
-1. **Data control**: Revoke access or limit permissions at any time
-2. **Single source of truth**: Multiple apps can access the same data
-3. **Data portability**: Easily transfer data between applications
-4. **Offline-first**: Access and modify data without an internet connection
+1. **Control**: Revoke or narrow app access when they want.
+2. **One place for their data**: Fewer duplicate profiles and silos.
+3. **Sync and offline** (with client SDKs): Work locally; sync when online.
+4. **Less vendor dependency**: Their data isn’t only inside one app’s servers.
 
-**For Developers:**
-1. **Simplified scaling**: Users "bring their own data," reducing server load
-2. **Enhanced security**: Sensitive data stays with the user
-3. **Easier onboarding**: Import existing user data with less friction
-4. **Sync management**: Basic handles data synchronization across devices
+### For developers
+
+1. **Less central DB to scale**: Heavy reads/writes move to a model aligned with per-user stores.
+2. **Security posture**: Sensitive payloads can stay scoped to user stores and tokens.
+3. **Faster integration**: Auth, schema, and CRUD patterns are consistent across React, Next.js, Expo, and REST.
 
 ## How it works
 
-Basic consists of two main components: Auth and Database.
-
 ### Auth
 
-Basic uses standard OAuth2 flow, manageable via API or provided libraries. Users create a single Basic.id account to control all their data and app permissions, streamlining the login process across applications.
+OAuth 2.0 (with PKCE where applicable). Users sign in through Basic; your app receives tokens with agreed scopes. Client SDKs wrap the flow; for custom stacks, see [Basic Auth](/readings/auth-basic).
 
-### Database
+### Data model
 
-Currently, Basic functions as a document database (similar to Firebase or MongoDB), with support for collections of JSON objects. SQL and relational features are coming soon.
+Today, projects define **collections** of JSON-shaped documents in `basic.config` (similar in spirit to Firebase or MongoDB collections), with indexed fields for sync and queries. The important difference is **per-user isolation** and **local-first clients** where you use the sync SDK.
 
-Key differences:
-- Separate databases for each user instead of one central database
-- Local-first architecture enables offline functionality and automatic syncing
-- Data remains under user control, with applications requesting access
+---
+
+For a product-focused overview, start with [What is Basic?](/get-started/welcome). For architecture detail, see [Personal data stores](/readings/personal-data-stores) and [Local-first sync](/readings/local-first-sync).

@@ -3,13 +3,12 @@ title: 'Managing permissions'
 description: 'How users will be able to manage permissions to their data'
 ---
 <Info>
-    This is an overview of how permissions will work. These are currently in development. 
+    Permission UX and fine-grained scope strings continue to evolve. Treat this page as the conceptual model; exact scope names and dashboard controls may change—verify against your project settings and the live OAuth flow.
 </Info>
 
 # How it works
-Users share tokens with apps that they trust. These tokens include the scope of data that the apps have access to. 
 
-Users can revoke access to these tokens at any time. 
+Users sign in and **grant scopes** to your app. Access tokens encode what the app may do. Users can **revoke** access from their account when they no longer trust an app.
 
 ### Flow
  1. Application initiates login / auth flow, which redirects users to a Basic SSO page

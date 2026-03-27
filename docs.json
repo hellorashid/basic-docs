@@ -14,37 +14,39 @@
         "tab": "Documentation",
         "dropdowns": [
           {
-            "dropdown": "React",
-            "icon": "code",
+            "dropdown": "Get started",
+            "icon": "rocket",
             "groups": [
               {
-                "group": "welcome",
+                "group": "Overview",
                 "pages": [
-                  "get-started/welcome"
+                  "get-started/welcome",
+                  "get-started/adminportal",
+                  "get-started/cli"
                 ]
-              },
+              }
+            ]
+          },
+          {
+            "dropdown": "React",
+            "icon": "react",
+            "groups": [
               {
-                "group": "1. create Basic account",
+                "group": "React Guide",
                 "pages": [
+                  "basic-react/basic-react-sdk",
                   "basic-react/react-adminportal"
                 ]
               },
               {
-                "group": "2. implement Basic",
-                "pages": [
-                  "basic-react/basic-react-sdk"
-                ]
-              },
-              {
-                "group": "guides",
+                "group": "Guides",
                 "pages": [
                   "basic-react/react-schema",
-                  "basic-react/react-interop",
-                  "basic-react/react-pwa"
+                  "basic-react/to-do-app"
                 ]
               },
               {
-                "group": "SDK reference",
+                "group": "SDK Reference",
                 "pages": [
                   "sdk-reference/react-components",
                   "sdk-reference/react-hooks",
@@ -58,26 +60,16 @@
             "icon": "code",
             "groups": [
               {
-                "group": "get started",
+                "group": "Next.js Guide",
                 "pages": [
-                  "basic-nextjs/basic-nextjs-sdk"
-                ]
-              },
-              {
-                "group": "1. create Basic account",
-                "pages": [
-                  "basic-react/react-adminportal"
-                ]
-              },
-              {
-                "group": "guides",
-                "pages": [
+                  "basic-nextjs/basic-nextjs-sdk",
+                  "basic-react/react-adminportal",
                   "basic-nextjs/nextjs-modes",
                   "basic-nextjs/nextjs-middleware"
                 ]
               },
               {
-                "group": "SDK reference",
+                "group": "SDK Reference",
                 "pages": [
                   "sdk-reference/react-components",
                   "sdk-reference/react-hooks",
@@ -88,62 +80,50 @@
           },
           {
             "dropdown": "Expo / React Native",
-            "icon": "code",
+            "icon": "mobile",
             "groups": [
               {
-                "group": "1. create Basic account",
+                "group": "Expo / RN Guide",
                 "pages": [
+                  "basic-expo-rn/basic-rn-sdk",
                   "basic-expo-rn/rn-adminportal"
                 ]
               },
               {
-                "group": "2. implement Basic",
-                "pages": [
-                  "basic-expo-rn/basic-rn-sdk"
-                ]
-              },
-              {
-                "group": "guides",
+                "group": "Guides",
                 "pages": [
                   "basic-expo-rn/rn-schema",
-                  "basic-expo-rn/rn-interop"
+                  "basic-expo-rn/rn-filtering"
                 ]
               },
               {
-                "group": "SDK reference",
+                "group": "SDK Reference",
                 "pages": [
-                  "sdk-reference/expo-rn",
-                  "basic-expo-rn/rn-filtering"
+                  "sdk-reference/expo-rn"
                 ]
               }
             ]
           },
           {
-            "dropdown": "REST APIs",
+            "dropdown": "REST API",
             "icon": "cloud",
             "groups": [
               {
-                "group": "1. create Basic account",
+                "group": "REST API Guide",
                 "pages": [
+                  "basic-restapi/basic-api",
                   "basic-restapi/api-adminportal"
                 ]
               },
               {
-                "group": "2. implement Basic",
-                "pages": [
-                  "basic-restapi/basic-api"
-                ]
-              },
-              {
-                "group": "guides",
+                "group": "Guides",
                 "pages": [
                   "basic-restapi/api-schema",
-                  "basic-restapi/api-interop",
                   "basic-restapi/api-filtering"
                 ]
               },
               {
-                "group": "Basic auth APIs",
+                "group": "Auth APIs",
                 "pages": [
                   "api-reference/auth/redirect-to-sign-in",
                   "api-reference/auth/get-auth-token",
@@ -152,7 +132,7 @@
                 ]
               },
               {
-                "group": "Basic database APIs (client side)",
+                "group": "Database APIs",
                 "pages": [
                   "api-reference/pds/create-item-pds",
                   "api-reference/pds/get-all-items-pds",
@@ -169,7 +149,7 @@
             "icon": "screwdriver-wrench",
             "groups": [
               {
-                "group": "Database APIs (server side)",
+                "group": "Database APIs (server)",
                 "pages": [
                   "api-reference/project-users/create-item",
                   "api-reference/project-users/get-all-items",
@@ -180,7 +160,7 @@
                 ]
               },
               {
-                "group": "projects",
+                "group": "Projects",
                 "pages": [
                   "api-reference/projects/create-a-new-project",
                   "api-reference/projects/get-project-details",
@@ -192,7 +172,7 @@
                 ]
               },
               {
-                "group": "projects-users",
+                "group": "Project Users",
                 "pages": [
                   "api-reference/project-users/get-project-users",
                   "api-reference/project-users/get-user-details",
@@ -201,7 +181,24 @@
                 ]
               },
               {
-                "group": "schema",
+                "group": "Teams",
+                "pages": [
+                  "api-reference/teams/create-a-new-team",
+                  "api-reference/teams/get-team-by-id",
+                  "api-reference/teams/get-user-teams",
+                  "api-reference/teams/update-a-team",
+                  "api-reference/teams/check-team-slug-availability",
+                  "api-reference/teams/get-team-members",
+                  "api-reference/teams/update-a-team-member",
+                  "api-reference/teams/delete-a-team-member",
+                  "api-reference/teams/get-team-invites",
+                  "api-reference/teams/create-a-team-invite",
+                  "api-reference/teams/accept-a-team-invite",
+                  "api-reference/teams/delete-a-team-invite"
+                ]
+              },
+              {
+                "group": "Schema",
                 "pages": [
                   "api-reference/projects/get-project-schema",
                   "api-reference/projects/update-project-schema",
@@ -211,7 +208,7 @@
                 ]
               },
               {
-                "group": "project API keys",
+                "group": "API Keys",
                 "pages": [
                   "api-reference/project-keys/create-new-api-key",
                   "api-reference/project-keys/get-all-keys",
@@ -223,7 +220,7 @@
                 ]
               },
               {
-                "group": "utilities",
+                "group": "Utilities",
                 "pages": [
                   "api-reference/utils/convert-text-to-url-friendly-slug",
                   "api-reference/utils/check-utils-endpoint-status"
@@ -234,10 +231,16 @@
         ]
       },
       {
-        "tab": "Readings",
+        "tab": "Concepts",
         "groups": [
           {
-            "group": "💡 principles of Basic",
+            "group": "Why Basic?",
+            "pages": [
+              "readings/why-basic"
+            ]
+          },
+          {
+            "group": "Core Concepts",
             "pages": [
               "readings/personal-data-stores",
               "readings/local-first-sync",
@@ -245,15 +248,19 @@
             ]
           },
           {
-            "group": "📖 tech references",
+            "group": "Auth & OAuth",
             "pages": [
-              "readings/interop",
-              "readings/schema",
-              "readings/pwa"
+              "readings/auth-basic"
             ]
           },
           {
-            "group": "others",
+            "group": "Technical References",
+            "pages": [
+              "readings/schema"
+            ]
+          },
+          {
+            "group": "Resources",
             "pages": [
               "readings/others/reading",
               "readings/others/roadmap"
@@ -310,6 +317,7 @@
       "copy",
       "view",
       "chatgpt",
-      "claude"    ]
+      "claude"
+    ]
   }
 }

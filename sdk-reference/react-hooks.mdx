@@ -69,16 +69,35 @@ Any of these properties can be accessed by destructuring the `useBasic` hook.
     }
     ```
   
-  **User type:**
+  **User type** (fields present depend on IdP / userinfo):
   ```typescript
   type User = {
-    id?: string
-    email?: string
+    sub?: string
     name?: string
-    fullName?: string
-    primaryEmailAddress?: { emailAddress: string }
+    email?: string
+    picture?: string
   }
   ```
+</ParamField>
+
+### did
+<ParamField query="did" type="string | null">
+  The authenticated user's Decentralized Identifier when available; `null` when not signed in or not provided by the identity layer.
+</ParamField>
+
+### scope
+<ParamField query="scope" type="string | null">
+  Space-separated OAuth scopes granted on the current access token (for example `profile` plus datastore scopes). Use `hasScope` and `missingScopes` for fine-grained checks.
+</ParamField>
+
+### hasScope
+<ParamField query="hasScope" type="(scope: string) => boolean">
+  Returns whether a given scope string is included on the current token.
+</ParamField>
+
+### missingScopes
+<ParamField query="missingScopes" type="() => string[]">
+  Returns scopes your app requested (via provider configuration) that are not yet granted on the current token — useful for prompting re-consent.
 </ParamField>
 
 ## Auth Methods
@@ -100,6 +119,11 @@ Any of these properties can be accessed by destructuring the `useBasic` hook.
     }
     ```
   <Note>`signin` (lowercase) is a deprecated alias for `signIn` and will be removed in a future version.</Note>
+</ParamField>
+
+### signInWithHandle
+<ParamField query="signInWithHandle" type="(handle: string) => Promise<void>">
+  Starts sign-in using a user handle (resolved to a DID server-side). Useful for handle-based login flows in addition to the default `signIn()` redirect.
 </ParamField>
 
 ### signOut
@@ -154,8 +178,8 @@ Any of these properties can be accessed by destructuring the `useBasic` hook.
 </ParamField>
 
 ### getToken
-<ParamField query="getToken" type="() => Promise<string>">
-  Fetches the user's JWT access token. The token is automatically refreshed if expired. Use this for making authenticated API calls to your own backend.
+<ParamField query="getToken" type="(options?: { forceRefresh?: boolean }) => Promise<string>">
+  Fetches the user's JWT access token. The token is automatically refreshed when needed. Pass `{ forceRefresh: true }` to obtain a new token from the server even if the current one is still valid. Use this for authenticated calls to your backend or the Basic APIs.
     ```tsx App.tsx
     import { useBasic } from '@basictech/react'
 
@@ -200,6 +224,18 @@ Any of these properties can be accessed by destructuring the `useBasic` hook.
   <Note>`getSignInLink` is a deprecated alias for `getSignInUrl` and will be removed in a future version.</Note>
 </ParamField>
 
+## Development & schema status
+
+### devInfo
+<ParamField query="devInfo" type="BasicSchemaDevInfo | null">
+  Snapshot comparing your local `basic.config` schema to the project schema on the server (project id, version, validity, last check). Intended for debugging and the dev toolbar; `null` if no schema is configured on the provider.
+</ParamField>
+
+### refreshSchemaStatus
+<ParamField query="refreshSchemaStatus" type="() => Promise<void>">
+  Re-runs the remote schema check and updates `devInfo`. Used by the dev toolbar and custom diagnostics UIs.
+</ParamField>
+
 ## Database
 
 ### db
@@ -208,15 +244,16 @@ Any of these properties can be accessed by destructuring the `useBasic` hook.
 </ParamField>
 
 ### dbStatus
-<ParamField query="dbStatus" type="string">
-  The current status of the database connection. Possible values are:
-  - `'LOADING'` - Database is initializing
-  - `'CONNECTING'` - Attempting to connect to sync server
-  - `'ONLINE'` - Connected and syncing
-  - `'SYNCING'` - Actively syncing data
-  - `'OFFLINE'` - No network connection (still works locally)
-  - `'ERROR_WILL_RETRY'` - Non-fatal error, will automatically retry
-  - `'ERROR'` - Fatal error occurred
+<ParamField query="dbStatus" type="DBStatus">
+  The current status of the database connection (string enum). Possible values include:
+  - `'LOADING'` — Initializing
+  - `'CONNECTING'` — Connecting to the sync server
+  - `'ONLINE'` — Connected and syncing
+  - `'SYNCING'` — Actively syncing
+  - `'OFFLINE'` — No network (local data may still be available in sync mode)
+  - `'ERROR_WILL_RETRY'` — Non-fatal error; will retry
+  - `'ERROR_TOKEN_EXPIRED'` — Auth token expired for sync; refresh or sign in again
+  - `'ERROR'` — Fatal error
 
     ```tsx App.tsx
     import { useBasic } from '@basictech/react'

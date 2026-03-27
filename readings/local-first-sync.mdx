@@ -1,13 +1,13 @@
 ---
-title: 'Instant sync'
-description: "Intro to Basic's sync"
+title: 'Local-first sync'
+description: "How Basic's clients keep data fast, offline-friendly, and in sync."
 ---
 # Summary
 
 Local-first architecture refers to a modern development pattern where primary read and write operations occur to a local database on clients' devices while data is synced across devices and users automatically in the background. 
 This provides benefits like instant UI, offline support, and real-time capabilities while still syncing to the cloud automatically.
 
-With Basic, you can avail these features in your applications by [integrating Basic into your React app](/basic-react/basic-react-sdk) or [Next.js app](/basic-nextjs/basic-nextjs-sdk).
+With Basic, you get these behaviors from the **sync** mode of our client SDKs (for example [React](/basic-react/basic-react-sdk) or [Next.js](/basic-nextjs/basic-nextjs-sdk)). **Remote** mode talks to the server directly without a local replica—see [Database modes](/basic-nextjs/nextjs-modes).
 
 # What is local-first sync?
 
@@ -152,4 +152,4 @@ It would be insincere to discuss a new technology without mentioning its trade-o
 # How to use local-first with Basic
   All of Basic's local-first sync capabilities come built-in with our client SDKs. 
 
-  You can get started by [integrating Basic into your React app](/basic-react/basic-react-sdk) or [Next.js app](/basic-nextjs/basic-nextjs-sdk).
+  Start with the [React](/basic-react/basic-react-sdk) or [Next.js](/basic-nextjs/basic-nextjs-sdk) quickstart (sync mode), or use the [REST API](/basic-restapi/basic-api) when you are not using a local-first client.
